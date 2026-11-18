@@ -1,0 +1,100 @@
+{
+  "meta": {
+    "name": "tezca.landing",
+    "description": "Landing trailer for Tezca",
+    "viewport": {
+      "w": 1920,
+      "h": 1080
+    }
+  },
+  "start": {
+    "url": "https://tezca.mx/"
+  },
+  "steps": [
+    {
+      "comment": "Tezca",
+      "action": "pause",
+      "durationMs": 2500
+    },
+    {
+      "action": "cameraMark",
+      "cinema": {
+        "zoom": 1.15,
+        "beat": "smooth"
+      },
+      "durationMs": 1500
+    },
+    {
+      "action": "scroll",
+      "to": {
+        "x": 0,
+        "y": 918
+      },
+      "durationMs": 1400
+    },
+    {
+      "action": "pause",
+      "durationMs": 1600
+    },
+    {
+      "action": "scroll",
+      "to": {
+        "x": 0,
+        "y": 1836
+      },
+      "durationMs": 1400
+    },
+    {
+      "action": "pause",
+      "durationMs": 1600
+    },
+    {
+      "action": "scroll",
+      "to": {
+        "x": 0,
+        "y": 2754
+      },
+      "durationMs": 1400
+    },
+    {
+      "action": "pause",
+      "durationMs": 1600
+    },
+    {
+      "action": "scroll",
+      "to": {
+        "x": 0,
+        "y": 3672
+      },
+      "durationMs": 1400
+    },
+    {
+      "action": "pause",
+      "durationMs": 1600
+    },
+    {
+      "action": "scroll",
+      "to": "bottom",
+      "durationMs": 1600
+    },
+    {
+      "action": "pause",
+      "durationMs": 1200
+    },
+    {
+      "action": "scroll",
+      "to": "top",
+      "durationMs": 1800
+    },
+    {
+      "comment": "tezca.mx",
+      "action": "pause",
+      "durationMs": 2500
+    }
+  ],
+  "output": {
+    "preset": "trailer",
+    "aspect": "16:9",
+    "captions": true
+  }
+}

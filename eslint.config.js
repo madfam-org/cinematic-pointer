@@ -29,6 +29,9 @@ export default [
         setInterval: true,
         clearInterval: true,
         crypto: true,
+        URL: true,
+        fetch: true,
+        AbortSignal: true,
       },
     },
     plugins: {

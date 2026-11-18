@@ -7,7 +7,7 @@ Thank you for your interest in contributing to Cinematic Pointer! This document 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/madfam/cinematic-pointer.git
+   git clone https://github.com/madfam-org/cinematic-pointer.git
    cd cinematic-pointer
    ```
 

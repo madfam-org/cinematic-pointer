@@ -202,10 +202,4 @@ export type PartialTheme = Partial<{
  * Preset theme names.
  */
 export type PresetThemeName =
-  | 'default'
-  | 'madfam_trailer'
-  | 'madfam_howto'
-  | 'madfam_teaser'
-  | 'minimal'
-  | 'dark'
-  | 'light';
+  'default' | 'madfam_trailer' | 'madfam_howto' | 'madfam_teaser' | 'minimal' | 'dark' | 'light';

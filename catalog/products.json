@@ -1,0 +1,329 @@
+{
+  "schema": "cinematic-pointer/catalog@1",
+  "source": "MADFAM public product projection (madfam-product-projection/v1)",
+  "source_last_updated": "2026-09-23",
+  "products": [
+    {
+      "slug": "acervo",
+      "name": "Acervo",
+      "lifecycle": "live",
+      "url": "https://acervo.madfam.io/",
+      "tiers": []
+    },
+    {
+      "slug": "avala",
+      "name": "Avala",
+      "lifecycle": "live",
+      "url": "https://avala.studio/",
+      "tiers": [
+        "institution",
+        "issuer",
+        "enterprise"
+      ]
+    },
+    {
+      "slug": "bloom-scroll",
+      "name": "Bloom Scroll",
+      "lifecycle": "live",
+      "url": "https://almanac.solar/",
+      "tiers": [
+        "reader",
+        "curator",
+        "studio"
+      ]
+    },
+    {
+      "slug": "cotiza",
+      "name": "Cotiza",
+      "lifecycle": "live",
+      "url": "https://cotiza.studio/",
+      "tiers": [
+        "maker",
+        "creator_pro",
+        "business",
+        "enterprise"
+      ]
+    },
+    {
+      "slug": "dhanam",
+      "name": "Dhanam",
+      "lifecycle": "live",
+      "url": "https://dhan.am/",
+      "tiers": [
+        "free",
+        "essentials",
+        "pro",
+        "premium"
+      ],
+      "pricing_url": "https://dhan.am/pricing"
+    },
+    {
+      "slug": "enclii",
+      "name": "Enclii",
+      "lifecycle": "live",
+      "url": "https://enclii.dev/",
+      "tiers": [
+        "community",
+        "pro",
+        "madfam"
+      ]
+    },
+    {
+      "slug": "factlas",
+      "name": "Factlas",
+      "lifecycle": "live",
+      "url": "https://factl.as/",
+      "tiers": [
+        "pilot",
+        "analyst",
+        "institutional"
+      ]
+    },
+    {
+      "slug": "fashion-cabinet",
+      "name": "Fashion Cabinet",
+      "lifecycle": "live",
+      "url": "https://fashioncabi.net/",
+      "tiers": []
+    },
+    {
+      "slug": "forgesight",
+      "name": "Forgesight",
+      "lifecycle": "live",
+      "url": "https://forgesight.app/",
+      "tiers": [
+        "free",
+        "pro",
+        "team",
+        "enterprise"
+      ]
+    },
+    {
+      "slug": "fortuna",
+      "name": "Fortuna",
+      "lifecycle": "live",
+      "url": "https://fortuna.tube/",
+      "tiers": [
+        "pro",
+        "team",
+        "business"
+      ]
+    },
+    {
+      "slug": "janua",
+      "name": "Janua",
+      "lifecycle": "live",
+      "url": "https://janua.dev/",
+      "tiers": [
+        "open_source",
+        "pro"
+      ],
+      "pricing_url": "https://janua.dev/pricing"
+    },
+    {
+      "slug": "kalya",
+      "name": "Kalya",
+      "lifecycle": "live",
+      "url": "https://kalya.app/",
+      "tiers": [
+        "free",
+        "solo",
+        "team",
+        "biz"
+      ]
+    },
+    {
+      "slug": "karafiel",
+      "name": "Karafiel",
+      "lifecycle": "live",
+      "url": "https://karafiel.mx/",
+      "tiers": [
+        "contador",
+        "consultor",
+        "despacho",
+        "firma"
+      ]
+    },
+    {
+      "slug": "nauta",
+      "name": "Nauta",
+      "lifecycle": "live",
+      "url": "https://nauta.quest/",
+      "tiers": [
+        "erp",
+        "vcto"
+      ]
+    },
+    {
+      "slug": "phynd-crm",
+      "name": "PhyndCRM",
+      "lifecycle": "live",
+      "url": "https://phynd.app/",
+      "tiers": [
+        "open_source",
+        "saas",
+        "enterprise"
+      ]
+    },
+    {
+      "slug": "pravara-mes",
+      "name": "Pravara MES",
+      "lifecycle": "live",
+      "url": "https://mes.madfam.io/",
+      "tiers": [
+        "starter",
+        "growth",
+        "enterprise"
+      ]
+    },
+    {
+      "slug": "primavera3d",
+      "name": "Primavera3D",
+      "lifecycle": "live",
+      "url": "https://primavera3d.pro/",
+      "tiers": []
+    },
+    {
+      "slug": "rondelio",
+      "name": "Rondelio",
+      "lifecycle": "live",
+      "url": "https://rondel.io/",
+      "tiers": [
+        "free",
+        "developer",
+        "enterprise"
+      ]
+    },
+    {
+      "slug": "routecraft",
+      "name": "RouteCraft",
+      "lifecycle": "live",
+      "url": "https://routecraft.app/",
+      "tiers": [
+        "discovery",
+        "professional",
+        "enterprise"
+      ]
+    },
+    {
+      "slug": "selva",
+      "name": "Selva",
+      "lifecycle": "live",
+      "url": "https://selva.town/",
+      "tiers": [
+        "developer",
+        "team",
+        "business"
+      ]
+    },
+    {
+      "slug": "symbiosis",
+      "name": "Symbiosis HCM",
+      "lifecycle": "live",
+      "url": "https://hcm.madfam.io/",
+      "tiers": [
+        "pilot",
+        "tenant",
+        "enterprise"
+      ]
+    },
+    {
+      "slug": "tezca",
+      "name": "Tezca",
+      "lifecycle": "live",
+      "url": "https://tezca.mx/",
+      "tiers": [
+        "free",
+        "essentials",
+        "academic",
+        "institutional",
+        "pro",
+        "pro_plus",
+        "enterprise"
+      ]
+    },
+    {
+      "slug": "tlacuilo",
+      "name": "Tlacuilo",
+      "lifecycle": "beta",
+      "url": "https://tlacuilo.madfam.io/",
+      "tiers": []
+    },
+    {
+      "slug": "voxa",
+      "name": "Voxa",
+      "lifecycle": "live",
+      "url": "https://voxa.madfam.io/",
+      "tiers": [
+        "free",
+        "family",
+        "clinic"
+      ]
+    },
+    {
+      "slug": "yantra4d",
+      "name": "Yantra4D",
+      "lifecycle": "live",
+      "url": "https://yantra4d.com/",
+      "tiers": [
+        "creator",
+        "pro",
+        "studio"
+      ]
+    }
+  ],
+  "skipped": [
+    {
+      "slug": "ceq",
+      "reason": "lifecycle degraded"
+    },
+    {
+      "slug": "enclii_depot",
+      "reason": "slug is not kebab-case"
+    },
+    {
+      "slug": "forj",
+      "reason": "lifecycle degraded"
+    },
+    {
+      "slug": "fragua",
+      "reason": "lifecycle incubating"
+    },
+    {
+      "slug": "geom-core",
+      "reason": "lifecycle incubating"
+    },
+    {
+      "slug": "lexidrop",
+      "reason": "lifecycle incubating"
+    },
+    {
+      "slug": "madlab",
+      "reason": "lifecycle incubating"
+    },
+    {
+      "slug": "marca",
+      "reason": "lifecycle incubating"
+    },
+    {
+      "slug": "meridian",
+      "reason": "lifecycle degraded"
+    },
+    {
+      "slug": "nuit-one",
+      "reason": "lifecycle degraded"
+    },
+    {
+      "slug": "periplo",
+      "reason": "lifecycle incubating"
+    },
+    {
+      "slug": "pliego",
+      "reason": "lifecycle incubating"
+    },
+    {
+      "slug": "telesia",
+      "reason": "lifecycle incubating"
+    }
+  ]
+}

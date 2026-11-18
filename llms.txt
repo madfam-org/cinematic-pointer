@@ -1,0 +1,30 @@
+# Cinematic Pointer
+
+Compact LLM context index for this repository.
+
+Cinematic Pointer replays a scripted web journey in a real browser, records it with a cursor overlay and
+edits it into a trailer. MADFAM uses it to film the public pages of its products and tiers. It is a
+command-line tool (TypeScript, Playwright, FFmpeg); nothing here is deployed.
+
+## Read first
+
+- `AGENTS.md` — canonical agent operating instructions.
+- `README.md` — human/product overview when present.
+- `ECOSYSTEM.md` — MADFAM ecosystem and Enclii deployment context when present.
+- `llms-full.txt` — full context map and durable operating contract.
+- `docs/REPO_BOUNDARY.md` — what may and may not live in this public repository.
+
+## Where things are
+
+- `src/cli.ts`, `src/commands/` — commands: `run`, `cut`, `reframe`, `doctor`, `catalog`, `produce`.
+- `src/executor/`, `src/drivers/`, `src/overlay/` — journey replay and the cursor overlay.
+- `src/postprod/` — FFmpeg edit, captions, reframe, export.
+- `src/catalog/` — trailer catalog: products to journeys, batch results and exit rules.
+- `catalog/products.json` — GENERATED product list (never hand-edit); `catalog/pricing-pages.json` is hand-kept.
+- `journeys/generated/` — GENERATED journeys; `npm run catalog:check` guards them.
+
+## Production operations
+
+Routine production operations are Enclii-first. Use Enclii web, API, or CLI
+before raw infrastructure tools. Direct `kubectl`, `helm`, SSH, provider CLIs,
+`docker exec`, or direct container access is bootstrap/break-glass only.

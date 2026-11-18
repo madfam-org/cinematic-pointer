@@ -1,5 +1,6 @@
 export interface Meta {
   name: string;
+  description?: string;
   viewport: {
     w: number;
     h: number;
