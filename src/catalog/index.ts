@@ -57,6 +57,8 @@ export interface Trailer {
   /** `<product>.<kind>`, e.g. `dhanam.pricing`. */
   id: string;
   product: string;
+  /** The product's display name, for title cards. */
+  name: string;
   kind: TrailerKind;
   /** `<product>__<tier>` for every tier the trailer covers (pricing trailers only). */
   skus: string[];
@@ -115,6 +117,7 @@ export function buildTrailers(catalog: Catalog): Trailer[] {
     trailers.push({
       id: `${product.slug}.landing`,
       product: product.slug,
+      name: product.name,
       kind: 'landing',
       skus: [],
       journey: {
@@ -133,6 +136,7 @@ export function buildTrailers(catalog: Catalog): Trailer[] {
       trailers.push({
         id: `${product.slug}.pricing`,
         product: product.slug,
+        name: product.name,
         kind: 'pricing',
         skus: product.tiers.map((tier) => `${product.slug}__${tier}`),
         journey: {

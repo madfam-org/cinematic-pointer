@@ -1,0 +1,135 @@
+/**
+ * Stage recorder
+ *
+ * Records anything that implements the stage contract (`window.__stage.ready`, `.duration`,
+ * `.seek(t)`): seek, take a picture, next frame. Motion blur comes from drawing several sub-frames
+ * per output frame and averaging them, which is what a film shutter does.
+ */
+import { spawn } from 'child_process';
+import { mkdir, rm } from 'fs/promises';
+import path from 'path';
+import { pathToFileURL } from 'url';
+
+import { chromium } from 'playwright';
+
+export interface StageRecordOptions {
+  /** A stage document on disk. */
+  stagePath: string;
+  outputPath: string;
+  workDir: string;
+  frame: { w: number; h: number };
+  fps?: number;
+  /** Sub-frames averaged into each output frame. 1 turns motion blur off. */
+  shutter?: number;
+  /** Colour grade applied at encode time. */
+  grade?: boolean;
+  onFrame?: (frame: number, total: number) => void;
+}
+
+export interface StageRecordResult {
+  outputPath: string;
+  frames: number;
+  subFrames: number;
+  fps: number;
+  duration: number;
+}
+
+/** The FFmpeg filter chain for a take: shutter blend, cadence, grade. Exported for tests. */
+export function stageFilters(fps: number, shutter: number, grade: boolean): string {
+  const filters: string[] = [];
+  if (shutter > 1) {
+    filters.push(`tmix=frames=${shutter}:weights='${Array(shutter).fill('1').join(' ')}'`);
+    filters.push(`fps=${fps}`);
+  }
+  if (grade) {
+    // A restrained film grade: a touch more contrast, cool shadows, warm highlights.
+    filters.push('eq=contrast=1.06:saturation=1.04');
+    filters.push('colorbalance=rs=-0.03:bs=0.04:rh=0.03:bh=-0.03');
+  }
+  filters.push('format=yuv420p');
+  return filters.join(',');
+}
+
+function encode(framesDir: string, inputFps: number, filters: string, out: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn('ffmpeg', [
+      '-v',
+      'error',
+      '-y',
+      '-framerate',
+      String(inputFps),
+      '-i',
+      path.join(framesDir, '%06d.jpg'),
+      '-vf',
+      filters,
+      '-c:v',
+      'libx264',
+      '-preset',
+      'medium',
+      '-crf',
+      '17',
+      '-movflags',
+      '+faststart',
+      out,
+    ]);
+    let stderr = '';
+    proc.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+    proc.on('error', reject);
+    proc.on('close', (code) =>
+      code === 0 ? resolve() : reject(new Error(`FFmpeg exited with code ${code}: ${stderr}`)),
+    );
+  });
+}
+
+export async function recordStage(options: StageRecordOptions): Promise<StageRecordResult> {
+  const fps = options.fps ?? 24;
+  const shutter = Math.max(1, Math.round(options.shutter ?? 3));
+  const framesDir = path.join(options.workDir, 'stage-frames');
+  await rm(framesDir, { recursive: true, force: true });
+  await mkdir(framesDir, { recursive: true });
+  await mkdir(path.dirname(options.outputPath), { recursive: true });
+
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({
+      viewport: { width: options.frame.w, height: options.frame.h },
+      deviceScaleFactor: 1,
+    });
+    const page = await context.newPage();
+    await page.goto(pathToFileURL(path.resolve(options.stagePath)).href, { waitUntil: 'load' });
+    await page.evaluate('window.__stage.ready');
+    const duration = (await page.evaluate('window.__stage.duration')) as number;
+    if (!(duration > 0)) throw new Error('The stage reports no duration');
+
+    const captureFps = fps * shutter;
+    const subFrames = Math.max(shutter, Math.round(duration * captureFps));
+    for (let i = 0; i < subFrames; i++) {
+      await page.evaluate(`window.__stage.seek(${(i / captureFps).toFixed(6)})`);
+      await page.screenshot({
+        path: path.join(framesDir, `${String(i).padStart(6, '0')}.jpg`),
+        type: 'jpeg',
+        quality: 93,
+      });
+      options.onFrame?.(i + 1, subFrames);
+    }
+
+    await encode(
+      framesDir,
+      captureFps,
+      stageFilters(fps, shutter, options.grade ?? true),
+      options.outputPath,
+    );
+    return {
+      outputPath: options.outputPath,
+      frames: Math.round(subFrames / shutter),
+      subFrames,
+      fps,
+      duration,
+    };
+  } finally {
+    await browser.close();
+    await rm(framesDir, { recursive: true, force: true });
+  }
+}

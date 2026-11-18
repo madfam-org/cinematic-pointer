@@ -14,6 +14,10 @@ import {
   RESULTS_SCHEMA,
   TrailerResult,
 } from '../catalog/results';
+import { capturePage } from '../cinema/capture';
+import { direct } from '../cinema/screenplay';
+import { addScore, hasAudio } from '../cinema/sound';
+import { buildStageHtml } from '../cinema/stage';
 import { BrowserType } from '../drivers/playwright';
 import { executeJourneyFile } from '../executor';
 import {
@@ -23,6 +27,7 @@ import {
   reframeVideo,
   runPipeline,
 } from '../postprod';
+import { recordStage } from '../recorders/stage';
 import { recordStepped } from '../recorders/stepped';
 
 /** A rendered file shorter than this did not film a tour. */
@@ -38,6 +43,8 @@ export interface ProduceOptions {
   dryRun?: boolean;
   /** `stepped` draws frame by frame (default); `realtime` records the live page with the overlay. */
   recorder?: string;
+  /** `--no-score` leaves a cinematic take silent. */
+  score?: boolean;
   /** `WxH`. Overrides every journey's viewport, e.g. to record smaller on a constrained machine. */
   viewport?: string;
 }
@@ -142,7 +149,39 @@ async function produceOne(
   // The event log exists only for a real-time take; it steers the smart crop when reframing.
   let eventsPath: string | undefined;
 
-  if (options.recorder === 'stepped') {
+  if (options.recorder === 'cinematic') {
+    const frame = journey.meta.viewport;
+    const capture = await capturePage({
+      url: journey.start.url,
+      outDir: runDir,
+      browserType: options.browser as BrowserType,
+    });
+    const screenplay = direct(capture, {
+      frame,
+      name: trailer.name,
+      tagline: new URL(journey.start.url).host,
+    });
+    const stagePath = path.join(runDir, 'stage.html');
+    await writeFile(stagePath, buildStageHtml(capture, screenplay, { letterbox: 2.39 }));
+    await writeFile(
+      path.join(runDir, 'screenplay.json'),
+      JSON.stringify(screenplay, null, 2) + '\n',
+    );
+    const take = await recordStage({ stagePath, outputPath: master, workDir: runDir, frame });
+    result.recorder = 'cinematic';
+    result.frames = take.frames;
+    result.shots = screenplay.shots.length;
+    result.landmarks = capture.landmarks.length;
+    result.captions = 'none: title cards only';
+    if (options.score === false) {
+      result.sound = 'none: the score was turned off';
+    } else {
+      const cues = await addScore(screenplay, master, runDir);
+      if (!(await hasAudio(master))) throw new Error(`${master} has no audio after scoring`);
+      result.sound = `synthesized score, ${cues} cues`;
+    }
+    result.renders.push(await proveRender(master, '16:9'));
+  } else if (options.recorder === 'stepped') {
     const take = await recordStepped({
       journey,
       outputPath: master,
@@ -215,8 +254,8 @@ export async function produce(options: ProduceOptions): Promise<ProduceResults> 
   const catalog = await loadCatalog(options.catalog);
   const aspects = parseAspects(options.aspects);
   const recorder = options.recorder ?? 'stepped';
-  if (recorder !== 'stepped' && recorder !== 'realtime') {
-    throw new Error(`Unknown recorder "${recorder}". Use stepped or realtime.`);
+  if (recorder !== 'stepped' && recorder !== 'realtime' && recorder !== 'cinematic') {
+    throw new Error(`Unknown recorder "${recorder}". Use cinematic, stepped or realtime.`);
   }
   options = { ...options, recorder };
   const trailers = selectTrailers(buildTrailers(catalog), options.filter);

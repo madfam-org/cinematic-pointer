@@ -103,9 +103,10 @@ program
   .option('--viewport <WxH>', 'Override every journey viewport, e.g. 1280x720')
   .option(
     '--recorder <mode>',
-    'stepped (frame by frame, machine-speed independent) or realtime (live page with overlay)',
+    'cinematic (3D shots with title cards), stepped (plain scroll) or realtime (live page, overlay)',
     'stepped',
   )
+  .option('--no-score', 'Leave a cinematic take silent')
   .option('--dry-run', 'List the selected trailers and render nothing', false)
   .action(produceCommand);
 

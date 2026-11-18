@@ -27,7 +27,12 @@ export interface TrailerResult {
   httpStatus?: number;
   stepsExecuted?: number;
   stepsFailed?: number;
-  recorder?: 'stepped' | 'realtime';
+  recorder?: 'cinematic' | 'stepped' | 'realtime';
+  /** Shots in a cinematic take, and the landmarks the director found on the page. */
+  shots?: number;
+  landmarks?: number;
+  /** What the take carries for sound, stated so a silent trailer is never mistaken for a finished one. */
+  sound?: string;
   /** Frames drawn by a stepped take. */
   frames?: number;
   renders: RenderProof[];
