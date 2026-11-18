@@ -100,6 +100,7 @@ program
   .option('-b, --browser <browser>', 'Browser to use (chromium, firefox, webkit)', 'chromium')
   .option('-o, --out <dir>', 'Output directory', 'exports')
   .option('--headed', 'Show the browser while recording', false)
+  .option('--viewport <WxH>', 'Override every journey viewport, e.g. 1280x720')
   .option('--dry-run', 'List the selected trailers and render nothing', false)
   .action(produceCommand);
 

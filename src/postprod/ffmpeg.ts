@@ -36,6 +36,35 @@ export async function checkFFmpegAvailable(): Promise<boolean> {
 }
 
 /**
+ * Parse the output of `ffmpeg -filters` into the set of filter names.
+ */
+export function parseFilterList(output: string): Set<string> {
+  const names = new Set<string>();
+  for (const line of output.split('\n')) {
+    // " T.. subtitles         V->V       Render text subtitles ..."
+    const match = line.match(/^\s[A-Z.|]{2,3}\s+(\S+)\s+\S+->\S+/);
+    if (match) names.add(match[1]);
+  }
+  return names;
+}
+
+/**
+ * Whether this FFmpeg build carries a filter. Builds without libass have no `subtitles` filter,
+ * so captions cannot be burned in. An unreadable filter list answers false, never true.
+ */
+export async function hasFFmpegFilter(name: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const proc = spawn('ffmpeg', ['-hide_banner', '-filters']);
+    let output = '';
+    proc.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    proc.on('error', () => resolve(false));
+    proc.on('close', (code) => resolve(code === 0 && parseFilterList(output).has(name)));
+  });
+}
+
+/**
  * Get FFmpeg version info.
  */
 export async function getFFmpegVersion(): Promise<string> {

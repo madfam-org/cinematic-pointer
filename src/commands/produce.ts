@@ -1,3 +1,4 @@
+import { spawn } from 'child_process';
 import { mkdir, stat, writeFile } from 'fs/promises';
 import path from 'path';
 
@@ -7,6 +8,7 @@ import { buildTrailers, loadCatalog, selectTrailers, serializeJourney, Trailer }
 import {
   exitCodeFor,
   parseAspects,
+  parseViewport,
   ProduceResults,
   RenderProof,
   RESULTS_SCHEMA,
@@ -14,7 +16,13 @@ import {
 } from '../catalog/results';
 import { BrowserType } from '../drivers/playwright';
 import { executeJourneyFile } from '../executor';
-import { checkFFmpegAvailable, probe, reframeVideo, runPipeline } from '../postprod';
+import {
+  checkFFmpegAvailable,
+  hasFFmpegFilter,
+  probe,
+  reframeVideo,
+  runPipeline,
+} from '../postprod';
 
 /** A rendered file shorter than this did not film a tour. */
 const MIN_SECONDS = 5;
@@ -27,6 +35,8 @@ export interface ProduceOptions {
   browser: string;
   headed?: boolean;
   dryRun?: boolean;
+  /** `WxH`. Overrides every journey's viewport, e.g. to record smaller on a constrained machine. */
+  viewport?: string;
 }
 
 /** The page must answer 2xx before it is filmed: an error page is not a trailer. */
@@ -39,6 +49,31 @@ export async function preflight(url: string): Promise<{ ok: boolean; status: num
   }
 }
 
+/** One small grayscale frame at `seconds`, as raw bytes. Empty when FFmpeg could not read one. */
+export async function grabFrame(filePath: string, seconds: number): Promise<Buffer> {
+  return new Promise((resolve) => {
+    const proc = spawn('ffmpeg', [
+      '-v',
+      'error',
+      '-ss',
+      seconds.toFixed(2),
+      '-i',
+      filePath,
+      '-frames:v',
+      '1',
+      '-vf',
+      'scale=64:36,format=gray',
+      '-f',
+      'rawvideo',
+      '-',
+    ]);
+    const chunks: Buffer[] = [];
+    proc.stdout.on('data', (chunk: Buffer) => chunks.push(chunk));
+    proc.on('error', () => resolve(Buffer.alloc(0)));
+    proc.on('close', (code) => resolve(code === 0 ? Buffer.concat(chunks) : Buffer.alloc(0)));
+  });
+}
+
 /** Measure a rendered file. Throws when it is absent, empty or too short to be a tour. */
 export async function proveRender(filePath: string, aspect: string): Promise<RenderProof> {
   const { size } = await stat(filePath);
@@ -46,6 +81,15 @@ export async function proveRender(filePath: string, aspect: string): Promise<Ren
   const info = await probe(filePath);
   if (!(info.duration >= MIN_SECONDS)) {
     throw new Error(`${filePath} lasts ${info.duration}s, under the ${MIN_SECONDS}s floor`);
+  }
+  // A file can have the right length and still show one held frame. Two moments of a tour differ.
+  const early = await grabFrame(filePath, info.duration * 0.25);
+  const late = await grabFrame(filePath, info.duration * 0.75);
+  if (early.length === 0 || late.length === 0) {
+    throw new Error(`${filePath} has no readable picture`);
+  }
+  if (early.equals(late)) {
+    throw new Error(`${filePath} shows the same picture at 25% and 75%: the edit held one frame`);
   }
   return {
     aspect,
@@ -83,7 +127,13 @@ async function produceOne(
   const runDir = path.join(dir, 'run');
   await mkdir(runDir, { recursive: true });
   const journeyPath = path.join(runDir, 'journey.json');
-  await writeFile(journeyPath, serializeJourney(trailer.journey));
+  const journey = options.viewport
+    ? {
+        ...trailer.journey,
+        meta: { ...trailer.journey.meta, viewport: parseViewport(options.viewport) },
+      }
+    : trailer.journey;
+  await writeFile(journeyPath, serializeJourney(journey));
 
   const run = await executeJourneyFile(journeyPath, {
     browserType: options.browser as BrowserType,
@@ -104,13 +154,20 @@ async function produceOne(
   }
 
   const master = path.join(dir, `${trailer.id}_16x9.mp4`);
+  const wantsCaptions = trailer.journey.output.captions === true;
+  const burnCaptions = wantsCaptions && (await hasFFmpegFilter('subtitles'));
   await runPipeline({
     videoPath: run.artifacts.videoPath,
     eventsPath: run.artifacts.eventsPath,
     outputPath: master,
     template: trailer.journey.output.preset,
-    captions: trailer.journey.output.captions ? 'auto' : 'none',
+    captions: burnCaptions ? 'auto' : 'none',
   });
+  result.captions = burnCaptions
+    ? 'burned'
+    : wantsCaptions
+      ? 'skipped: this FFmpeg build has no subtitles filter (libass)'
+      : 'none';
   result.renders.push(await proveRender(master, '16:9'));
 
   for (const aspect of aspects.filter((a) => a !== '16:9')) {
@@ -182,6 +239,9 @@ export async function produce(options: ProduceOptions): Promise<ProduceResults> 
       results.rendered++;
       const proof = result.renders.map((r) => `${r.aspect} ${r.seconds}s ${r.bytes}B`).join(', ');
       console.log(chalk.green(`  ✓ rendered`) + chalk.gray(`  ${proof}`));
+      if (result.captions?.startsWith('skipped')) {
+        console.log(chalk.yellow(`  ! captions ${result.captions}`));
+      }
     } else {
       results.failed++;
       console.log(chalk.red(`  ✗ failed`) + chalk.gray(`  ${result.reason}`));

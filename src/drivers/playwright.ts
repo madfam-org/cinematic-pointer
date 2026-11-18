@@ -41,8 +41,19 @@ export class PlaywrightWebDriver implements Driver {
       timeout: options.timeout ?? 30000,
       speed: options.speed ?? 1,
       emitter: options.emitter,
+      // Dropping these two silently produced runs with no video and no cursor overlay.
+      recording: options.recording,
+      overlay: options.overlay,
     };
     this.emitter = options.emitter ?? null;
+  }
+
+  /** Whether this driver will record video and inject the cursor overlay. */
+  capabilities(): { recording: boolean; overlay: boolean } {
+    return {
+      recording: this.options.recording?.enabled === true,
+      overlay: this.options.overlay?.enabled === true,
+    };
   }
 
   private getTimestamp(): number {

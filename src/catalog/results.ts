@@ -22,6 +22,8 @@ export interface TrailerResult {
   url: string;
   status: 'rendered' | 'failed';
   reason?: string;
+  /** `burned`, `none`, or why captions were left out (e.g. the FFmpeg build cannot render them). */
+  captions?: string;
   httpStatus?: number;
   stepsExecuted?: number;
   stepsFailed?: number;
@@ -61,4 +63,16 @@ export function exitCodeFor(results: ProduceResults): number {
   if (results.selected === 0) return 2;
   if (results.failed > 0 || results.rendered !== results.selected) return 1;
   return 0;
+}
+
+/** Parse `WxH` into a viewport. Rejects anything outside 640x360 to 3840x2160. */
+export function parseViewport(value: string): { w: number; h: number } {
+  const match = value.match(/^(\d{3,4})x(\d{3,4})$/);
+  if (!match) throw new Error(`Viewport must look like 1280x720, got "${value}"`);
+  const w = Number(match[1]);
+  const h = Number(match[2]);
+  if (w < 640 || h < 360 || w > 3840 || h > 2160) {
+    throw new Error(`Viewport ${value} is outside 640x360 to 3840x2160`);
+  }
+  return { w, h };
 }

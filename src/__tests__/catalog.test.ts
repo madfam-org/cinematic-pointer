@@ -11,7 +11,13 @@ import {
   trailerFileName,
   writeGenerated,
 } from '../catalog';
-import { exitCodeFor, parseAspects, ProduceResults, RESULTS_SCHEMA } from '../catalog/results';
+import {
+  exitCodeFor,
+  parseAspects,
+  parseViewport,
+  ProduceResults,
+  RESULTS_SCHEMA,
+} from '../catalog/results';
 import { validateJourney } from '../utils/validation';
 
 const raw = () => ({
@@ -180,5 +186,12 @@ describe('produce results', () => {
     expect(parseAspects('16:9, 1:1,9:16')).toEqual(['16:9', '1:1', '9:16']);
     expect(() => parseAspects('3:2')).toThrow(/Unknown aspect/);
     expect(() => parseAspects(' , ')).toThrow(/At least one/);
+  });
+
+  it('parses a viewport override and rejects nonsense', () => {
+    expect(parseViewport('1280x720')).toEqual({ w: 1280, h: 720 });
+    expect(() => parseViewport('1280')).toThrow(/must look like/);
+    expect(() => parseViewport('100x100')).toThrow(/outside/);
+    expect(() => parseViewport('9999x9999')).toThrow(/outside/);
   });
 });
