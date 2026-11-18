@@ -16,6 +16,8 @@ interface RunOptions {
   timeout: string;
   retries: string;
   speed: string;
+  overlay?: boolean;
+  recording?: boolean;
 }
 
 export async function runJourney(journeyPath: string, options: RunOptions) {
@@ -32,7 +34,8 @@ export async function runJourney(journeyPath: string, options: RunOptions) {
       retries: parseInt(options.retries, 10),
       speed: parseFloat(options.speed),
       outputDir: options.out,
-      enableRecording: options.recorder !== 'none',
+      enableRecording: options.recorder !== 'none' && options.recording !== false,
+      enableOverlay: options.overlay !== false,
     };
 
     spinner.succeed('Journey loaded');

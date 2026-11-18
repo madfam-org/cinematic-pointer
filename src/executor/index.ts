@@ -4,6 +4,7 @@ import path from 'path';
 import { PlaywrightWebDriver, BrowserType } from '../drivers/playwright';
 import { Journey, JourneyStep, Condition, RecordingArtifacts, Selector } from '../types';
 import { UesEmitter } from '../utils/ues-emitter';
+import { validateJourney } from '../utils/validation';
 
 export interface ExecutorOptions {
   browserType?: BrowserType;
@@ -314,7 +315,10 @@ export async function executeJourneyFile(
 ): Promise<ExecutionResult> {
   const { readFile } = await import('fs/promises');
   const content = await readFile(journeyPath, 'utf-8');
-  const journey: Journey = JSON.parse(content);
+  const parsed: unknown = JSON.parse(content);
+  // Fail before a browser opens: a malformed journey must not record half a video.
+  validateJourney(parsed);
+  const journey = parsed as Journey;
 
   const executor = new JourneyExecutor(options);
   if (callbacks) {

@@ -1,0 +1,8 @@
+{
+  "schema": "cinematic-pointer/pricing-pages@1",
+  "note": "Hand-kept. A product gets a pricing trailer only when its public pricing page is listed here. Add a page after opening it signed-out; never list a page behind a sign-in.",
+  "pages": {
+    "dhanam": "https://dhan.am/pricing",
+    "janua": "https://janua.dev/pricing"
+  }
+}

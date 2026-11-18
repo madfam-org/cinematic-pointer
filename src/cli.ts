@@ -3,8 +3,10 @@ import { Command } from 'commander';
 
 import { version } from '../package.json';
 
+import { catalogCheck, catalogGenerate } from './commands/catalog';
 import { cutVideo, listTemplates } from './commands/cut';
 import { runDoctor } from './commands/doctor';
+import { produceCommand } from './commands/produce';
 import { reframeVideo, listAspects } from './commands/reframe';
 import { runJourney } from './commands/run';
 
@@ -70,6 +72,36 @@ program
       reframeVideo(video, options);
     }
   });
+
+const catalog = program
+  .command('catalog')
+  .description('Trailer journeys generated from the product catalog');
+
+catalog
+  .command('generate')
+  .description('Write journeys/generated from the catalog')
+  .option('--catalog <file>', 'Product catalog', 'catalog/products.json')
+  .option('--dir <dir>', 'Generated journeys directory', 'journeys/generated')
+  .action(catalogGenerate);
+
+catalog
+  .command('check')
+  .description('Fail when a generated journey is missing, stale or orphaned')
+  .option('--catalog <file>', 'Product catalog', 'catalog/products.json')
+  .option('--dir <dir>', 'Generated journeys directory', 'journeys/generated')
+  .action(catalogCheck);
+
+program
+  .command('produce')
+  .description('Record and edit every trailer the catalog calls for')
+  .option('--catalog <file>', 'Product catalog', 'catalog/products.json')
+  .option('-f, --filter <regex>', 'Only trailers whose id matches (e.g. "^dhanam\\.")')
+  .option('-a, --aspects <list>', 'Comma-separated aspects; 16:9 is always rendered', '16:9,9:16')
+  .option('-b, --browser <browser>', 'Browser to use (chromium, firefox, webkit)', 'chromium')
+  .option('-o, --out <dir>', 'Output directory', 'exports')
+  .option('--headed', 'Show the browser while recording', false)
+  .option('--dry-run', 'List the selected trailers and render nothing', false)
+  .action(produceCommand);
 
 program
   .command('doctor')

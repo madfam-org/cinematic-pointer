@@ -14,12 +14,29 @@ An automated system that replays preplanned user journeys on the web and produce
 - **Brand Theming** — Customizable colors, fonts, and cursor styles
 - **Privacy by Design** — Blur maps, masking, and synthetic data support
 
+## MADFAM product trailers
+
+This repository also carries the catalog of trailers for MADFAM's public product pages.
+
+```bash
+npm run catalog:check                    # generated journeys match catalog/products.json
+npm run produce -- --dry-run             # list every trailer the catalog calls for
+npm run produce -- --filter '^enclii\.'  # record and edit a subset
+```
+
+Each trailer is recorded from a public, signed-out page and lands in `exports/<trailer-id>/` in 16:9 and
+9:16, with a measured record in `exports/results.json`. Generated journeys only read the page; they never
+click or type. See [`AGENTS.md`](./AGENTS.md) for the catalog rules.
+
+> **Boundary.** This is a public repository: no secrets, no private hosts, no client names and no
+> recordings are committed here. See [`docs/REPO_BOUNDARY.md`](./docs/REPO_BOUNDARY.md).
+
 ## Quick Start
 
 ### Installation
 
 ```bash
-git clone https://github.com/madfam/cinematic-pointer.git
+git clone https://github.com/madfam-org/cinematic-pointer.git
 cd cinematic-pointer
 npm install
 npx playwright install
@@ -341,7 +358,8 @@ Pull requests welcome. For major changes, open an issue first.
 
 ## License
 
-Proprietary © 2025 Innovaciones MADFAM S.A.S. de C.V. All rights reserved.
+AGPL-3.0-only. Copyright (C) 2025-2026 Innovaciones MADFAM S.A.S. de C.V. See [`LICENSE`](./LICENSE) and
+[`NOTICE`](./NOTICE).
 
 ## Credits
 
