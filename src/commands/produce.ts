@@ -23,6 +23,7 @@ import {
   reframeVideo,
   runPipeline,
 } from '../postprod';
+import { recordStepped } from '../recorders/stepped';
 
 /** A rendered file shorter than this did not film a tour. */
 const MIN_SECONDS = 5;
@@ -35,6 +36,8 @@ export interface ProduceOptions {
   browser: string;
   headed?: boolean;
   dryRun?: boolean;
+  /** `stepped` draws frame by frame (default); `realtime` records the live page with the overlay. */
+  recorder?: string;
   /** `WxH`. Overrides every journey's viewport, e.g. to record smaller on a constrained machine. */
   viewport?: string;
 }
@@ -135,40 +138,58 @@ async function produceOne(
     : trailer.journey;
   await writeFile(journeyPath, serializeJourney(journey));
 
-  const run = await executeJourneyFile(journeyPath, {
-    browserType: options.browser as BrowserType,
-    headless: !options.headed,
-    outputDir: runDir,
-    enableRecording: true,
-    enableOverlay: true,
-  });
-  result.stepsExecuted = run.stepsExecuted;
-  result.stepsFailed = run.stepsFailed;
-  if (!run.success) {
-    result.reason = `${run.stepsFailed} step(s) failed: ${run.errors.map((e) => e.error).join('; ')}`;
-    return result;
-  }
-  if (!run.artifacts.videoPath) {
-    result.reason = 'the run produced no recording';
-    return result;
-  }
-
   const master = path.join(dir, `${trailer.id}_16x9.mp4`);
-  const wantsCaptions = trailer.journey.output.captions === true;
-  const burnCaptions = wantsCaptions && (await hasFFmpegFilter('subtitles'));
-  await runPipeline({
-    videoPath: run.artifacts.videoPath,
-    eventsPath: run.artifacts.eventsPath,
-    outputPath: master,
-    template: trailer.journey.output.preset,
-    captions: burnCaptions ? 'auto' : 'none',
-  });
-  result.captions = burnCaptions
-    ? 'burned'
-    : wantsCaptions
-      ? 'skipped: this FFmpeg build has no subtitles filter (libass)'
-      : 'none';
-  result.renders.push(await proveRender(master, '16:9'));
+  // The event log exists only for a real-time take; it steers the smart crop when reframing.
+  let eventsPath: string | undefined;
+
+  if (options.recorder === 'stepped') {
+    const take = await recordStepped({
+      journey,
+      outputPath: master,
+      workDir: runDir,
+      browserType: options.browser as BrowserType,
+    });
+    result.recorder = 'stepped';
+    result.frames = take.frames;
+    result.captions = 'none: a stepped take carries no captions yet';
+    result.renders.push(await proveRender(master, '16:9'));
+  } else {
+    result.recorder = 'realtime';
+    const run = await executeJourneyFile(journeyPath, {
+      browserType: options.browser as BrowserType,
+      headless: !options.headed,
+      outputDir: runDir,
+      enableRecording: true,
+      enableOverlay: true,
+    });
+    result.stepsExecuted = run.stepsExecuted;
+    result.stepsFailed = run.stepsFailed;
+    if (!run.success) {
+      result.reason = `${run.stepsFailed} step(s) failed: ${run.errors.map((e) => e.error).join('; ')}`;
+      return result;
+    }
+    if (!run.artifacts.videoPath) {
+      result.reason = 'the run produced no recording';
+      return result;
+    }
+
+    const wantsCaptions = trailer.journey.output.captions === true;
+    const burnCaptions = wantsCaptions && (await hasFFmpegFilter('subtitles'));
+    await runPipeline({
+      videoPath: run.artifacts.videoPath,
+      eventsPath: run.artifacts.eventsPath,
+      outputPath: master,
+      template: trailer.journey.output.preset,
+      captions: burnCaptions ? 'auto' : 'none',
+    });
+    result.captions = burnCaptions
+      ? 'burned'
+      : wantsCaptions
+        ? 'skipped: this FFmpeg build has no subtitles filter (libass)'
+        : 'none';
+    result.renders.push(await proveRender(master, '16:9'));
+    eventsPath = run.artifacts.eventsPath;
+  }
 
   for (const aspect of aspects.filter((a) => a !== '16:9')) {
     const outputPath = path.join(dir, `${trailer.id}_${aspect.replace(':', 'x')}.mp4`);
@@ -176,8 +197,8 @@ async function produceOne(
       inputPath: master,
       outputPath,
       targetAspect: aspect,
-      eventsPath: run.artifacts.eventsPath,
-      smartCrop: true,
+      eventsPath,
+      smartCrop: eventsPath !== undefined,
     });
     result.renders.push(await proveRender(outputPath, aspect));
   }
@@ -193,6 +214,11 @@ async function produceOne(
 export async function produce(options: ProduceOptions): Promise<ProduceResults> {
   const catalog = await loadCatalog(options.catalog);
   const aspects = parseAspects(options.aspects);
+  const recorder = options.recorder ?? 'stepped';
+  if (recorder !== 'stepped' && recorder !== 'realtime') {
+    throw new Error(`Unknown recorder "${recorder}". Use stepped or realtime.`);
+  }
+  options = { ...options, recorder };
   const trailers = selectTrailers(buildTrailers(catalog), options.filter);
 
   const results: ProduceResults = {
