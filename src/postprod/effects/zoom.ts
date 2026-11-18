@@ -60,8 +60,6 @@ export function generateZoomPanFilter(
 
   const outW = outputSize?.width ?? video.width;
   const outH = outputSize?.height ?? video.height;
-  const totalFrames = Math.ceil(video.duration * video.fps);
-
   // Sort keyframes by time
   const sorted = [...keyframes].sort((a, b) => a.time - b.time);
 
@@ -77,7 +75,9 @@ export function generateZoomPanFilter(
     `z='${zoomExpr}'`,
     `:x='iw/2-(iw/zoom/2)+((${xExpr})-0.5)*iw/zoom'`,
     `:y='ih/2-(ih/zoom/2)+((${yExpr})-0.5)*ih/zoom'`,
-    `:d=${totalFrames}`,
+    // d=1: one output frame per input frame. zoompan is built for stills, so a larger d holds the
+    // FIRST frame of a video for d frames (a whole edit of the blank page before it loads).
+    `:d=1`,
     `:s=${outW}x${outH}`,
     `:fps=${video.fps}`,
   ].join('');
@@ -106,5 +106,5 @@ export function generateSimpleZoomFilter(
   const xExpr = `iw/2-(iw/zoom/2)+${centerX - 0.5}*iw/zoom`;
   const yExpr = `ih/2-(ih/zoom/2)+${centerY - 0.5}*ih/zoom`;
 
-  return `zoompan=z='${zoomExpr}':x='${xExpr}':y='${yExpr}':d=${totalFrames}:s=${video.width}x${video.height}:fps=${video.fps}`;
+  return `zoompan=z='${zoomExpr}':x='${xExpr}':y='${yExpr}':d=1:s=${video.width}x${video.height}:fps=${video.fps}`;
 }

@@ -1,3 +1,4 @@
+import { parseFilterList } from '../postprod/ffmpeg';
 import { FFmpegCommand, ffmpeg } from '../postprod/ffmpeg';
 
 describe('FFmpegCommand', () => {
@@ -265,5 +266,27 @@ describe('ffmpeg factory', () => {
     expect(cmd1.build()).not.toContain('/input2.mp4');
     expect(cmd2.build()).toContain('/input2.mp4');
     expect(cmd2.build()).not.toContain('/input1.mp4');
+  });
+});
+
+describe('parseFilterList', () => {
+  const sample = [
+    'Filters:',
+    '  T.. = Timeline support',
+    ' ... acopy             A->A       Copy the input audio unchanged to the output.',
+    ' T.. subtitles         V->V       Render text subtitles onto input video using the libass library.',
+    ' .S. zoompan           V->V       Apply Zoom & Pan effect.',
+  ].join('\n');
+
+  it('reads filter names and ignores the legend', () => {
+    const names = parseFilterList(sample);
+    expect(names.has('subtitles')).toBe(true);
+    expect(names.has('zoompan')).toBe(true);
+    expect(names.has('Timeline')).toBe(false);
+    expect(names.size).toBe(3);
+  });
+
+  it('finds nothing in empty output', () => {
+    expect(parseFilterList('').size).toBe(0);
   });
 });

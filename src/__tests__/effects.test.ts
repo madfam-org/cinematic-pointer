@@ -64,6 +64,14 @@ describe('Effects Module', () => {
         const result = generateZoomPanFilter(keyframes, mockVideo, { width: 1280, height: 720 });
         expect(result).toContain('s=1280x720');
       });
+
+      it('emits one output frame per input frame', () => {
+        const keyframes: ZoomPanKeyframe[] = [
+          { time: 0, zoom: 1.0, x: 0.5, y: 0.5 },
+          { time: 5, zoom: 1.5, x: 0.5, y: 0.5 },
+        ];
+        expect(generateZoomPanFilter(keyframes, mockVideo)).toContain(':d=1:');
+      });
     });
 
     describe('generateSimpleZoomFilter', () => {
@@ -75,7 +83,9 @@ describe('Effects Module', () => {
 
       it('should respect custom duration', () => {
         const result = generateSimpleZoomFilter(1.0, 2.0, 0.5, 0.5, mockVideo, 10);
-        expect(result).toContain('d=300'); // 10 seconds * 30 fps
+        expect(result).toContain('on/300'); // 10 seconds * 30 fps
+        // One output frame per input frame: a larger d would hold the first video frame.
+        expect(result).toContain(':d=1:');
       });
     });
   });
