@@ -2,7 +2,7 @@ import { cueSource, scoreArgs, scoreCues } from '../cinema/score';
 import { direct, pickMontage } from '../cinema/screenplay';
 import { buildStageHtml } from '../cinema/stage';
 import { Landmark, PageCapture } from '../cinema/types';
-import { stageFilters } from '../recorders/stage';
+import { stageFilters, subFrameTime } from '../recorders/stage';
 
 const mark = (kind: Landmark['kind'], y: number, text = kind): Landmark => ({
   kind,
@@ -194,5 +194,26 @@ describe('score', () => {
 
   it('is deterministic', () => {
     expect(JSON.stringify(scoreCues(play))).toBe(JSON.stringify(cues));
+  });
+});
+
+describe('shutter', () => {
+  it('opens each frame at its own time', () => {
+    expect(subFrameTime(0, 24, 5)).toBe(0);
+    expect(subFrameTime(5, 24, 5)).toBeCloseTo(1 / 24, 9);
+    expect(subFrameTime(240, 24, 5)).toBeCloseTo(2, 9);
+  });
+
+  it('packs sub-frames into the first half of the frame interval', () => {
+    const last = subFrameTime(4, 24, 5);
+    expect(last).toBeGreaterThan(0);
+    expect(last).toBeLessThan(0.5 / 24);
+    for (let i = 1; i < 20; i++) {
+      expect(subFrameTime(i, 24, 5)).toBeGreaterThan(subFrameTime(i - 1, 24, 5));
+    }
+  });
+
+  it('is plain frame time with a single sub-frame', () => {
+    expect(subFrameTime(48, 24, 1)).toBe(2);
   });
 });

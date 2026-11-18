@@ -34,6 +34,19 @@ export interface StageRecordResult {
   duration: number;
 }
 
+/** The share of each frame interval the shutter is open: 0.5 is the 180 degree shutter of film. */
+export const SHUTTER_OPEN = 0.5;
+
+/**
+ * The stage time of sub-frame `i`. Sub-frames are packed into the open part of their frame's
+ * interval, so a fast move smears into a blur instead of leaving separate ghosts a frame apart.
+ */
+export function subFrameTime(i: number, fps: number, shutter: number): number {
+  const frame = Math.floor(i / shutter);
+  const k = i % shutter;
+  return (frame + (SHUTTER_OPEN * k) / shutter) / fps;
+}
+
 /** The FFmpeg filter chain for a take: shutter blend, cadence, grade. Exported for tests. */
 export function stageFilters(fps: number, shutter: number, grade: boolean): string {
   const filters: string[] = [];
@@ -85,7 +98,7 @@ function encode(framesDir: string, inputFps: number, filters: string, out: strin
 
 export async function recordStage(options: StageRecordOptions): Promise<StageRecordResult> {
   const fps = options.fps ?? 24;
-  const shutter = Math.max(1, Math.round(options.shutter ?? 3));
+  const shutter = Math.max(1, Math.round(options.shutter ?? 5));
   const framesDir = path.join(options.workDir, 'stage-frames');
   await rm(framesDir, { recursive: true, force: true });
   await mkdir(framesDir, { recursive: true });
@@ -104,9 +117,9 @@ export async function recordStage(options: StageRecordOptions): Promise<StageRec
     if (!(duration > 0)) throw new Error('The stage reports no duration');
 
     const captureFps = fps * shutter;
-    const subFrames = Math.max(shutter, Math.round(duration * captureFps));
+    const subFrames = Math.max(shutter, Math.round(duration * fps) * shutter);
     for (let i = 0; i < subFrames; i++) {
-      await page.evaluate(`window.__stage.seek(${(i / captureFps).toFixed(6)})`);
+      await page.evaluate(`window.__stage.seek(${subFrameTime(i, fps, shutter).toFixed(6)})`);
       await page.screenshot({
         path: path.join(framesDir, `${String(i).padStart(6, '0')}.jpg`),
         type: 'jpeg',
