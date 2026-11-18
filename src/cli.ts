@@ -101,6 +101,11 @@ program
   .option('-o, --out <dir>', 'Output directory', 'exports')
   .option('--headed', 'Show the browser while recording', false)
   .option('--viewport <WxH>', 'Override every journey viewport, e.g. 1280x720')
+  .option(
+    '--recorder <mode>',
+    'stepped (frame by frame, machine-speed independent) or realtime (live page with overlay)',
+    'stepped',
+  )
   .option('--dry-run', 'List the selected trailers and render nothing', false)
   .action(produceCommand);
 

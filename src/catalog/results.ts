@@ -27,6 +27,9 @@ export interface TrailerResult {
   httpStatus?: number;
   stepsExecuted?: number;
   stepsFailed?: number;
+  recorder?: 'stepped' | 'realtime';
+  /** Frames drawn by a stepped take. */
+  frames?: number;
   renders: RenderProof[];
 }
 
