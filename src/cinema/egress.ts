@@ -154,6 +154,8 @@ export async function startEgressProxy(options: EgressProxyOptions = {}): Promis
   const maxHosts = options.maxHosts ?? 300;
   const refused = options.refused ?? [];
   const verdicts = new Map<string, Promise<{ address: string } | { reason: string }>>();
+  // Tunnels are detached from the http server, so they are tracked here to be closed with it.
+  const sockets = new Set<net.Socket>();
 
   const note = (url: string, reason: string) => {
     if (refused.length < 200) refused.push({ url: url.slice(0, 300), reason });
@@ -192,6 +194,8 @@ export async function startEgressProxy(options: EgressProxyOptions = {}): Promis
       client.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
     };
     client.on('error', () => client.destroy());
+    sockets.add(client);
+    client.on('close', () => sockets.delete(client));
 
     const match = target.match(/^(.+):(\d+)$/);
     if (!match) return refuse('not a host and port');
@@ -203,18 +207,33 @@ export async function startEgressProxy(options: EgressProxyOptions = {}): Promis
 
     void judge(host).then((verdict) => {
       if ('reason' in verdict) return refuse(verdict.reason);
+      // The browser may have gone away while the name was being looked up.
+      if (client.destroyed) return;
       const upstream = connect(verdict.address, 443);
+      let established = false;
+      sockets.add(upstream);
+      upstream.setTimeout(30000, () => upstream.destroy());
       upstream.on('error', () => {
-        client.end('HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\n\r\n');
+        // A 502 is only meaningful before the tunnel exists; after, the bytes belong to TLS.
+        if (!established && !client.destroyed) {
+          client.end('HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\n\r\n');
+        } else {
+          client.destroy();
+        }
         upstream.destroy();
       });
       upstream.once('connect', () => {
+        established = true;
+        upstream.setTimeout(0);
         client.write('HTTP/1.1 200 Connection Established\r\n\r\n');
         upstream.pipe(client);
         client.pipe(upstream);
       });
       client.on('close', () => upstream.destroy());
-      upstream.on('close', () => client.destroy());
+      upstream.on('close', () => {
+        sockets.delete(upstream);
+        client.destroy();
+      });
     });
   });
 
@@ -229,6 +248,7 @@ export async function startEgressProxy(options: EgressProxyOptions = {}): Promis
     refused,
     close: () =>
       new Promise<void>((done) => {
+        for (const socket of sockets) socket.destroy();
         server.closeAllConnections?.();
         server.close(() => done());
       }),
@@ -244,7 +264,7 @@ export const GUARDED_CHROMIUM_ARGS = [
   '--force-webrtc-ip-handling-policy=disable_non_proxied_udp',
   '--dns-prefetch-disable',
   '--disable-quic',
-  '--disable-features=ServiceWorker,NetworkPrediction',
+  // No `--disable-features` here: Playwright passes its own, and a second one would replace it.
 ];
 
 export interface PageGuard {
@@ -267,11 +287,14 @@ export async function guardPage(
   let violation: string | null = null;
   let first: Page | undefined;
 
+  let left = false;
   const watch = (page: Page) => {
     page.on('framenavigated', (frame) => {
       if (frame !== page.mainFrame()) return;
       const url = frame.url();
-      if (url === 'about:blank') return;
+      // Only the blank page a new tab starts on is exempt. Going back to it later is leaving.
+      if (url === 'about:blank' && !left) return;
+      left = true;
       const reason = refuseRequest(url, true, allowed);
       // A redirect is not seen as a request, so the place the page ends up is judged here.
       if (reason) violation ??= `the page went to ${url.slice(0, 200)}: ${reason}`;

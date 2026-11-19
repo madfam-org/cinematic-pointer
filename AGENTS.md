@@ -85,7 +85,7 @@ that is not public. The proxy connects to the address it checked, so a name cann
 the check and another to the connection. On top of that the page itself must stay on a listed host (an
 entry is exact; a leading dot means any subdomain): a capture whose page leaves the list, for example
 through a redirect, is failed and its pictures are deleted. Other public hosts stay reachable as
-sub-resources. WebSockets, WebRTC, shared workers and service-worker registration are turned off. The
+sub-resources. WebSockets are closed, and WebRTC, shared workers and service-worker registration are removed from the page. The
 manifest records the list and the first 200 refusals. The network policy around the process remains
 the outer stop.
 

@@ -374,6 +374,9 @@ export async function probe(filePath: string): Promise<ProbeResult> {
     const args = [
       '-v',
       'quiet',
+      // A media file is read as a file and nothing else.
+      '-protocol_whitelist',
+      'file',
       '-print_format',
       'json',
       '-show_format',

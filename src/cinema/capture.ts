@@ -140,7 +140,10 @@ export async function withSettledPage<T>(
       .catch((error: unknown) => {
         hold();
         // When the guard refused the page itself, say that instead of a browser error.
-        const first = refused.find((entry) => entry.url.startsWith(options.url));
+        const host = new URL(options.url).host;
+        const first = refused.find(
+          (entry) => entry.url.startsWith(options.url) || entry.url === `https://${host}:443`,
+        );
         if (first) throw new Error(`The page was refused: ${first.reason}`);
         throw error;
       });
@@ -172,8 +175,11 @@ export async function withSettledPage<T>(
     hold();
     return result;
   } finally {
-    await browser.close();
-    await proxy?.close();
+    try {
+      await browser.close();
+    } finally {
+      await proxy?.close();
+    }
   }
 }
 
