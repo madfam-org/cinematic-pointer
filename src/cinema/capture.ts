@@ -7,7 +7,7 @@
 import { rm } from 'fs/promises';
 import path from 'path';
 
-import { chromium, firefox, webkit } from 'playwright';
+import { chromium, firefox, Page, webkit } from 'playwright';
 import sharp from 'sharp';
 
 import { BrowserType } from '../drivers/playwright';
@@ -54,6 +54,7 @@ const LANDMARK_SCRIPT = `(() => {
 
 const PAGE_FACTS_SCRIPT = `(() => ({
   title: document.title || '',
+  width: Math.max(document.documentElement.scrollWidth, document.body ? document.body.scrollWidth : 0),
   height: Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0),
   background: (() => {
     const b = getComputedStyle(document.body).backgroundColor;
@@ -63,60 +64,101 @@ const PAGE_FACTS_SCRIPT = `(() => ({
   })(),
 }))()`;
 
-export async function capturePage(options: CaptureOptions): Promise<PageCapture> {
-  const width = options.width ?? 1440;
-  const maxHeight = options.maxHeight ?? 12000;
+export interface PageFacts {
+  title: string;
+  /** The page's own scroll size, which can exceed the width it was laid out at. */
+  width: number;
+  height: number;
+  background: string;
+  /** HTTP status of the document, or null when the browser got no response. */
+  status: number | null;
+  /** Where the browser ended up after redirects. */
+  finalUrl: string;
+}
+
+type MeasuredFacts = Omit<PageFacts, 'status' | 'finalUrl'>;
+
+/** Measure the page as it stands now. */
+export async function measurePage(page: Page): Promise<MeasuredFacts> {
+  return (await page.evaluate(PAGE_FACTS_SCRIPT)) as MeasuredFacts;
+}
+
+/**
+ * Opens the page, walks it once so lazy images and reveal-on-scroll sections are in place, and
+ * hands the settled page to `use`. Read-only: it scrolls and looks. It clicks nothing.
+ */
+export async function withSettledPage<T>(
+  options: { url: string; width: number; walkHeight: number; browserType?: BrowserType },
+  use: (page: Page, facts: PageFacts) => Promise<T>,
+): Promise<T> {
   const launcher = { chromium, firefox, webkit }[options.browserType ?? 'chromium'];
   const browser = await launcher.launch({ headless: true });
   try {
     const context = await browser.newContext({
-      viewport: { width, height: 900 },
+      viewport: { width: options.width, height: 900 },
       deviceScaleFactor: 1,
       reducedMotion: 'reduce',
     });
     const page = await context.newPage();
-    await page.goto(options.url, { waitUntil: 'load', timeout: 60000 });
+    const response = await page.goto(options.url, { waitUntil: 'load', timeout: 60000 });
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => undefined);
 
-    // Walk the page once so lazy images and reveal-on-scroll sections are in place for the still.
-    const firstHeight = ((await page.evaluate(PAGE_FACTS_SCRIPT)) as { height: number }).height;
-    for (let y = 0; y < Math.min(firstHeight, maxHeight); y += 700) {
+    // The height is re-read as the walk goes: content that appears on scroll makes the page longer,
+    // and that part has to be walked too or its lazy images are pictured unloaded.
+    for (let y = 0; y < Math.min((await measurePage(page)).height, options.walkHeight); y += 700) {
       await page.evaluate(`window.scrollTo(0, ${y})`);
       await page.waitForTimeout(120);
     }
     await page.evaluate('window.scrollTo(0, 0)');
     await page.waitForTimeout(300);
 
-    const facts = (await page.evaluate(PAGE_FACTS_SCRIPT)) as {
-      title: string;
-      height: number;
-      background: string;
-    };
-    const height = Math.min(facts.height, maxHeight);
-    const image = 'page.png';
-    const full = path.join(options.outDir, 'page-full.png');
-    const target = path.join(options.outDir, image);
-    // fullPage captures beyond the viewport without resizing it, so viewport-height layouts keep
-    // their shape. A page taller than the limit is cut to it afterwards.
-    await page.screenshot({ path: facts.height > maxHeight ? full : target, fullPage: true });
-    if (facts.height > maxHeight) {
-      await sharp(full).extract({ left: 0, top: 0, width, height }).toFile(target);
-      await rm(full, { force: true });
-    }
-    const landmarks = ((await page.evaluate(LANDMARK_SCRIPT)) as Landmark[])
-      .filter((m) => m.y + m.h <= height && m.x >= 0 && m.x + m.w <= width)
-      .sort((a, b) => a.y - b.y || a.x - b.x);
-
-    return {
-      url: options.url,
-      title: facts.title,
-      width,
-      height,
-      image,
-      background: facts.background,
-      landmarks,
-    };
+    return await use(page, {
+      ...(await measurePage(page)),
+      status: response ? response.status() : null,
+      finalUrl: page.url(),
+    });
   } finally {
     await browser.close();
   }
+}
+
+/** The landmarks that lie wholly inside a capture of `width` by `height`, top to bottom. */
+export async function readLandmarks(
+  page: Page,
+  width: number,
+  height: number,
+): Promise<Landmark[]> {
+  return ((await page.evaluate(LANDMARK_SCRIPT)) as Landmark[])
+    .filter((m) => m.y + m.h <= height && m.x >= 0 && m.x + m.w <= width)
+    .sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+export async function capturePage(options: CaptureOptions): Promise<PageCapture> {
+  const width = options.width ?? 1440;
+  const maxHeight = options.maxHeight ?? 12000;
+  return withSettledPage(
+    { url: options.url, width, walkHeight: maxHeight, browserType: options.browserType },
+    async (page, facts) => {
+      const height = Math.min(facts.height, maxHeight);
+      const image = 'page.png';
+      const full = path.join(options.outDir, 'page-full.png');
+      const target = path.join(options.outDir, image);
+      // fullPage captures beyond the viewport without resizing it, so viewport-height layouts keep
+      // their shape. A page taller than the limit is cut to it afterwards.
+      await page.screenshot({ path: facts.height > maxHeight ? full : target, fullPage: true });
+      if (facts.height > maxHeight) {
+        await sharp(full).extract({ left: 0, top: 0, width, height }).toFile(target);
+        await rm(full, { force: true });
+      }
+      return {
+        url: options.url,
+        title: facts.title,
+        width,
+        height,
+        image,
+        background: facts.background,
+        landmarks: await readLandmarks(page, width, height),
+      };
+    },
+  );
 }

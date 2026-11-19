@@ -64,6 +64,19 @@ npm run produce -- --filter '^dhanam\.'      # film a subset (regex on the trail
 npm run produce                              # film everything, one trailer at a time
 ```
 
+**Page tiles.** `capture page <url>` writes the full length of a page as PNG tiles plus
+`manifest.json` (schema `cinematic-pointer/page-tiles@1`: URL, capture time, page size, tile grid, each
+tile's place and bytes, landmarks). It is read-only: it scrolls and looks, and clicks nothing. Tiles
+default to 2048 px; edge tiles are smaller and none is padded. A page taller than `--max-height`
+(60000 px) is cut off and the manifest says `truncated: true`. The command exits 1 when every tile is
+a flat colour and 2 on any error: an HTTP error page, a page that changes height mid-capture, a URL
+that is not http(s). Each run first removes the tiles and manifest already in `--out`. A captured page is someone's work: capture MADFAM's own public pages only, and never
+commit a capture (`captures/` is ignored).
+
+```bash
+npx tsx src/cli.ts capture page https://enclii.dev/ --out captures/enclii
+```
+
 **Recorders.** `produce --recorder` picks how a trailer is filmed:
 
 | Recorder            | What it makes                                                                                                                                                                                                                     | Notes                                                                                                                                                                                                                                                                                                                                                       |

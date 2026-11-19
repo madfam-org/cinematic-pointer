@@ -2,6 +2,7 @@ import { cueSource, scoreArgs, scoreCues } from '../cinema/score';
 import { direct, pickMontage } from '../cinema/screenplay';
 import { buildStageHtml } from '../cinema/stage';
 import { Landmark, PageCapture } from '../cinema/types';
+import { parsePixels, tileGrid, webUrl } from '../cinema/tiles';
 import { stageFilters, subFrameTime, takeQuality } from '../recorders/stage';
 
 const mark = (kind: Landmark['kind'], y: number, text = kind): Landmark => ({
@@ -231,5 +232,73 @@ describe('take quality', () => {
     expect(draft.note).toMatch(/^draft/);
     expect(draft.note).toContain('not a finished take');
     expect(stageFilters(24, draft.shutter, true)).not.toContain('tmix');
+  });
+});
+
+describe('page tiles', () => {
+  it('covers the page exactly, with no gap, overlap or padding', () => {
+    const tiles = tileGrid(1440, 5000, 2048);
+    expect(tiles.map((t) => t.file)).toEqual([
+      'tile-r000-c000.png',
+      'tile-r001-c000.png',
+      'tile-r002-c000.png',
+    ]);
+    expect(tiles.map((t) => [t.x, t.y, t.w, t.h])).toEqual([
+      [0, 0, 1440, 2048],
+      [0, 2048, 1440, 2048],
+      [0, 4096, 1440, 904],
+    ]);
+    expect(tiles.reduce((sum, t) => sum + t.w * t.h, 0)).toBe(1440 * 5000);
+  });
+
+  it('uses several columns when the page is wider than a tile', () => {
+    const tiles = tileGrid(2500, 1000, 1024);
+    expect(tiles).toHaveLength(3);
+    expect(tiles[2]).toMatchObject({ col: 2, row: 0, x: 2048, w: 452, h: 1000 });
+  });
+
+  it('a page that fits one tile is one tile of its own size', () => {
+    expect(tileGrid(800, 600, 2048)).toEqual([
+      { col: 0, row: 0, x: 0, y: 0, w: 800, h: 600, file: 'tile-r000-c000.png' },
+    ]);
+  });
+
+  it('rejects sizes that are not positive whole numbers', () => {
+    expect(() => tileGrid(0, 100, 256)).toThrow('width');
+    expect(() => tileGrid(100, 100.5, 256)).toThrow('height');
+    expect(() => tileGrid(100, 100, -1)).toThrow('tileSize');
+  });
+
+  it('numbers rows and columns row by row and still covers the page exactly', () => {
+    const tiles = tileGrid(2500, 2500, 1024);
+    expect(tiles).toHaveLength(9);
+    expect(tiles.map((t) => `${t.row}:${t.col}`).slice(0, 4)).toEqual(['0:0', '0:1', '0:2', '1:0']);
+    expect(tiles[8]).toMatchObject({
+      x: 2048,
+      y: 2048,
+      w: 452,
+      h: 452,
+      file: 'tile-r002-c002.png',
+    });
+    expect(tiles.reduce((sum, t) => sum + t.w * t.h, 0)).toBe(2500 * 2500);
+  });
+});
+
+describe('capture page options', () => {
+  it('takes plain digits within the range', () => {
+    expect(parsePixels('tile', '2048', 256, 8192)).toBe(2048);
+  });
+
+  it('rejects other number spellings and sizes out of range', () => {
+    for (const bad of ['0x800', '1e3', ' 2048', '2048.5', '-1', '1', '60000', '']) {
+      expect(() => parsePixels('tile', bad, 256, 8192)).toThrow('--tile');
+    }
+  });
+
+  it('captures web pages only', () => {
+    expect(webUrl('https://enclii.dev')).toBe('https://enclii.dev/');
+    expect(() => webUrl('file:///etc/hosts')).toThrow('Only http and https');
+    expect(() => webUrl('chrome://settings')).toThrow('Only http and https');
+    expect(() => webUrl('enclii.dev')).toThrow('not a URL');
   });
 });

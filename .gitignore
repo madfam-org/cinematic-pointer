@@ -17,6 +17,7 @@ build/
 # Artifacts
 artifacts/
 exports/
+captures/
 *.mp4
 *.webm
 *.mov

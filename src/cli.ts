@@ -3,6 +3,7 @@ import { Command } from 'commander';
 
 import { version } from '../package.json';
 
+import { capturePageCommand } from './commands/capture';
 import { catalogCheck, catalogGenerate } from './commands/catalog';
 import { cutVideo, listTemplates } from './commands/cut';
 import { runDoctor } from './commands/doctor';
@@ -90,6 +91,18 @@ catalog
   .option('--catalog <file>', 'Product catalog', 'catalog/products.json')
   .option('--dir <dir>', 'Generated journeys directory', 'journeys/generated')
   .action(catalogCheck);
+
+const capture = program.command('capture').description('Read-only pictures of a page');
+
+capture
+  .command('page <url>')
+  .description('The full length of a page as image tiles plus manifest.json')
+  .option('-o, --out <dir>', 'Output directory', 'captures/page')
+  .option('--width <px>', 'Width the page is laid out at', '1440')
+  .option('--tile <px>', 'Edge of a square tile', '2048')
+  .option('--max-height <px>', 'Cut a taller page off here; the manifest says so', '60000')
+  .option('-b, --browser <browser>', 'Browser to use (chromium, firefox, webkit)', 'chromium')
+  .action(capturePageCommand);
 
 program
   .command('produce')
