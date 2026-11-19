@@ -105,6 +105,23 @@ smaller take is scaled up, and other aspects are a centre crop.
 npx tsx src/cli.ts export take.mp4 --formats mp4,webm --aspects 16:9,9:16 --out exports/take
 ```
 
+**Image.** `ghcr.io/madfam-org/cinematic-pointer` is the CLI with Chromium and FFmpeg inside, for
+unattended runs (CEQ's CPU worker is built on it). `.github/workflows/image.yml` builds it on every pull
+request that touches it, and on `main` publishes it and signs the digest with cosign. The Dockerfile's
+last step is a self-test, run as the runtime user (uid 1001): the CLI starts, the native modules load,
+FFmpeg answers and Chromium opens a page, so an image that cannot do its job is never published. Pin
+the digest the publish job prints, never a tag. Chromium runs without its own sandbox inside the
+container (Playwright's default), so the container and the network policy around it are the boundary.
+
+```bash
+docker run --rm -v "$PWD/out:/work" ghcr.io/madfam-org/cinematic-pointer@sha256:<digest> \
+  capture page https://enclii.dev/ --out /work/enclii
+```
+
+Outputs are written as uid 1001. When mounting a host directory on Linux, make it writable by that
+user or pass `--user "$(id -u)"`. Paths such as `--catalog` default to the working directory, so name
+them (`/opt/cinematic-pointer/catalog/products.json`) when running from `/work`.
+
 **Recorders.** `produce --recorder` picks how a trailer is filmed:
 
 | Recorder            | What it makes                                                                                                                                                                                                                     | Notes                                                                                                                                                                                                                                                                                                                                                       |
