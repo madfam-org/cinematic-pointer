@@ -101,9 +101,20 @@ Unknown formats, aspects and
 platforms are errors, never a default. Outputs are 1080-class (a 16:9 export is 1920x1080), so a
 smaller take is scaled up, and other aspects are a centre crop.
 
-```bash
+````bash
 npx tsx src/cli.ts export take.mp4 --formats mp4,webm --aspects 16:9,9:16 --out exports/take
-```
+**Image.** `ghcr.io/madfam-org/cinematic-pointer` is the CLI with Chromium and FFmpeg inside, for
+unattended runs (CEQ's CPU worker is built on it). `.github/workflows/image.yml` builds it on every pull
+request that touches it, and on `main` publishes it and signs the digest with cosign. The Dockerfile's
+last step is a self-test, run as the runtime user (uid 1001): the CLI starts, the native modules load,
+FFmpeg answers and Chromium opens a page, so an image that cannot do its job is never published. Pin
+the digest the publish job prints, never a tag. Chromium runs without its own sandbox inside the
+container (Playwright's default), so the container and the network policy around it are the boundary.
+
+```bash
+docker run --rm -v "$PWD/out:/work" ghcr.io/madfam-org/cinematic-pointer@sha256:<digest> \
+  capture page https://enclii.dev/ --out /work/enclii
+````
 
 **Recorders.** `produce --recorder` picks how a trailer is filmed:
 

@@ -1,0 +1,147 @@
+# Cinematic Pointer CLI image (PUBLIC repository).
+#
+# Pull request: build the image and run its built-in self-test (the Dockerfile's last RUN starts
+# the CLI, loads the native modules and opens a page in Chromium). Nothing is pushed, no secret
+# is used, and the job holds a read-only token, so a fork pull request is safe to build.
+#
+# Push to main, or a manual run: build, push to ghcr.io/madfam-org/cinematic-pointer and sign
+# the digest with cosign (keyless). Consumers pin the DIGEST this job prints, never a tag.
+#
+# Supply chain: every action is pinned to a full commit SHA (tag in the comment), the install
+# inside the image comes from the committed lockfile, and only the publish job can write packages.
+
+name: Image
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+      - src/**
+      - catalog/**
+      - journeys/**
+      - .github/workflows/image.yml
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+      - src/**
+      - catalog/**
+      - journeys/**
+      - .github/workflows/image.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  IMAGE: ghcr.io/madfam-org/cinematic-pointer
+
+jobs:
+  build:
+    name: Build and self-test
+    if: github.event_name == 'pull_request'
+    # GitHub-hosted on purpose: this job builds code from a pull request.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build (no push)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: false
+          load: true
+          tags: cinematic-pointer:pr
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: The image runs as built
+        run: |
+          set -euo pipefail
+          test "$(docker run --rm --entrypoint id cinematic-pointer:pr -u)" = "1001"
+          docker run --rm cinematic-pointer:pr --version
+          docker run --rm cinematic-pointer:pr capture page --help | grep -q -- '--out'
+          echo "image: runs as uid 1001, CLI answers OK"
+
+  publish:
+    name: Publish and sign
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+      id-token: write # cosign keyless
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tags and labels
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=sha,prefix=,format=long
+            type=raw,value=main
+          labels: |
+            org.opencontainers.image.title=cinematic-pointer
+            org.opencontainers.image.licenses=AGPL-3.0-only
+      - name: Build and push
+        id: push
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Sign the digest
+        env:
+          IMAGE_REF: ${{ env.IMAGE }}@${{ steps.push.outputs.digest }}
+        run: |
+          set -euo pipefail
+          test -n "${{ steps.push.outputs.digest }}" || { echo "no digest was produced"; exit 1; }
+          signed=0
+          for wait in 0 20 60; do
+            if [ "$wait" -gt 0 ]; then sleep "$wait"; fi
+            if cosign sign --yes "$IMAGE_REF"; then signed=1; break; fi
+          done
+          test "$signed" -eq 1 || { echo "::error::cosign could not sign $IMAGE_REF"; exit 1; }
+      - name: What to pin
+        env:
+          IMAGE_REF: ${{ env.IMAGE }}@${{ steps.push.outputs.digest }}
+        run: |
+          echo "image: published and signed $IMAGE_REF (commit ${GITHUB_SHA})"
+          {
+            echo "### Published"
+            echo ""
+            echo "\`$IMAGE_REF\`"
+            echo ""
+            echo "Built from commit \`${GITHUB_SHA}\`. Pin this digest, not a tag."
+          } >> "$GITHUB_STEP_SUMMARY"
