@@ -8,7 +8,8 @@
       "name": "Acervo",
       "lifecycle": "live",
       "url": "https://acervo.madfam.io/",
-      "tiers": []
+      "tiers": [],
+      "layer": "fruit"
     },
     {
       "slug": "avala",
@@ -19,7 +20,8 @@
         "institution",
         "issuer",
         "enterprise"
-      ]
+      ],
+      "layer": "stem"
     },
     {
       "slug": "bloom-scroll",
@@ -30,7 +32,8 @@
         "reader",
         "curator",
         "studio"
-      ]
+      ],
+      "layer": "fruit"
     },
     {
       "slug": "cotiza",
@@ -42,7 +45,8 @@
         "creator_pro",
         "business",
         "enterprise"
-      ]
+      ],
+      "layer": "fruit"
     },
     {
       "slug": "dhanam",
@@ -55,6 +59,7 @@
         "pro",
         "premium"
       ],
+      "layer": "fruit",
       "pricing_url": "https://dhan.am/pricing"
     },
     {
@@ -66,7 +71,8 @@
         "community",
         "pro",
         "madfam"
-      ]
+      ],
+      "layer": "soil"
     },
     {
       "slug": "factlas",
@@ -77,14 +83,16 @@
         "pilot",
         "analyst",
         "institutional"
-      ]
+      ],
+      "layer": "roots"
     },
     {
       "slug": "fashion-cabinet",
       "name": "Fashion Cabinet",
       "lifecycle": "live",
       "url": "https://fashioncabi.net/",
-      "tiers": []
+      "tiers": [],
+      "layer": "stem"
     },
     {
       "slug": "forgesight",
@@ -96,7 +104,8 @@
         "pro",
         "team",
         "enterprise"
-      ]
+      ],
+      "layer": "roots"
     },
     {
       "slug": "fortuna",
@@ -107,7 +116,8 @@
         "pro",
         "team",
         "business"
-      ]
+      ],
+      "layer": "roots"
     },
     {
       "slug": "janua",
@@ -118,6 +128,7 @@
         "open_source",
         "pro"
       ],
+      "layer": "soil",
       "pricing_url": "https://janua.dev/pricing"
     },
     {
@@ -130,7 +141,8 @@
         "solo",
         "team",
         "biz"
-      ]
+      ],
+      "layer": "fruit"
     },
     {
       "slug": "karafiel",
@@ -142,7 +154,8 @@
         "consultor",
         "despacho",
         "firma"
-      ]
+      ],
+      "layer": "stem"
     },
     {
       "slug": "nauta",
@@ -152,7 +165,8 @@
       "tiers": [
         "erp",
         "vcto"
-      ]
+      ],
+      "layer": "fruit"
     },
     {
       "slug": "phynd-crm",
@@ -163,7 +177,8 @@
         "open_source",
         "saas",
         "enterprise"
-      ]
+      ],
+      "layer": "fruit"
     },
     {
       "slug": "pravara-mes",
@@ -174,14 +189,16 @@
         "starter",
         "growth",
         "enterprise"
-      ]
+      ],
+      "layer": "fruit"
     },
     {
       "slug": "primavera3d",
       "name": "Primavera3D",
       "lifecycle": "live",
       "url": "https://primavera3d.pro/",
-      "tiers": []
+      "tiers": [],
+      "layer": "fruit"
     },
     {
       "slug": "rondelio",
@@ -192,7 +209,8 @@
         "free",
         "developer",
         "enterprise"
-      ]
+      ],
+      "layer": "fruit"
     },
     {
       "slug": "routecraft",
@@ -203,7 +221,8 @@
         "discovery",
         "professional",
         "enterprise"
-      ]
+      ],
+      "layer": "fruit"
     },
     {
       "slug": "selva",
@@ -214,7 +233,8 @@
         "developer",
         "team",
         "business"
-      ]
+      ],
+      "layer": "fruit"
     },
     {
       "slug": "symbiosis",
@@ -225,7 +245,8 @@
         "pilot",
         "tenant",
         "enterprise"
-      ]
+      ],
+      "layer": "fruit"
     },
     {
       "slug": "tezca",
@@ -240,14 +261,16 @@
         "pro",
         "pro_plus",
         "enterprise"
-      ]
+      ],
+      "layer": "stem"
     },
     {
       "slug": "tlacuilo",
       "name": "Tlacuilo",
       "lifecycle": "beta",
       "url": "https://tlacuilo.madfam.io/",
-      "tiers": []
+      "tiers": [],
+      "layer": "roots"
     },
     {
       "slug": "voxa",
@@ -258,7 +281,8 @@
         "free",
         "family",
         "clinic"
-      ]
+      ],
+      "layer": "fruit"
     },
     {
       "slug": "yantra4d",
@@ -269,13 +293,18 @@
         "creator",
         "pro",
         "studio"
-      ]
+      ],
+      "layer": "fruit"
     }
   ],
   "skipped": [
     {
       "slug": "ceq",
       "reason": "lifecycle degraded"
+    },
+    {
+      "slug": "creator-census",
+      "reason": "lifecycle incubating"
     },
     {
       "slug": "enclii_depot",

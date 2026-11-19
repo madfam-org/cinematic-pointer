@@ -35,6 +35,8 @@ const productSchema = z
     url: httpsUrl,
     tiers: z.array(z.string().regex(TIER_SLUG)),
     pricing_url: httpsUrl.optional(),
+    /** The registry's stack layer. The estate tour is laid out by it. */
+    layer: z.enum(['soil', 'roots', 'stem', 'fruit']).optional(),
   })
   .strict();
 

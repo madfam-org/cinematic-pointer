@@ -52,6 +52,8 @@ const pricing = JSON.parse(readFileSync(PRICING, 'utf8')).pages;
 const products = [];
 const skipped = [];
 
+const LAYERS = new Set(['soil', 'roots', 'stem', 'fruit']);
+
 for (const p of projection.products) {
   const primary = p.domains?.primary ?? null;
   const reason = !PRODUCT_RE.test(p.slug)
@@ -73,6 +75,8 @@ for (const p of projection.products) {
     url: `https://${primary}/`,
     tiers,
   };
+  // The registry's stack layer, which the estate tour is laid out by.
+  if (LAYERS.has(p.layer)) entry.layer = p.layer;
   if (pricing[p.slug]) entry.pricing_url = pricing[p.slug];
   products.push(entry);
 }

@@ -56,7 +56,8 @@ RUN set -eu; \
     ffmpeg -version > /dev/null; \
     touch /work/.writable "$HOME/.writable" && rm /work/.writable "$HOME/.writable"; \
     cd /opt/cinematic-pointer; \
-    node -e "require('sharp'); require('esbuild')" 2>/dev/null || node -e "require('sharp')"; \
+    node -e "require('sharp'); require('esbuild'); require('three')"; \
+    $CLI tour --help > /dev/null; \
     node -e "const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();const p=await b.newPage();await p.setContent('<h1>ok</h1>');const t=await p.textContent('h1');await b.close();if(t!=='ok')process.exit(1);console.log('chromium: opened a page')})().catch(e=>{console.error(e);process.exit(1)})"
 
 ENTRYPOINT ["/opt/cinematic-pointer/node_modules/.bin/tsx", "/opt/cinematic-pointer/src/cli.ts"]
