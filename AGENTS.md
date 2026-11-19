@@ -77,6 +77,29 @@ commit a capture (`captures/` is ignored).
 npx tsx src/cli.ts capture page https://enclii.dev/ --out captures/enclii
 ```
 
+`--allow-hosts enclii.dev,.madfam.io` turns on the egress guard (`src/cinema/egress.ts`), for captures run
+on our own infrastructure. The page itself may then navigate only to a listed host over https (an entry
+is exact; a leading dot means any subdomain), and no request of any kind may go to an address that is
+not public: no IP literal, no local name, no name that resolves to a private, loopback or link-local
+address. Other public hosts stay reachable as sub-resources. Service workers and WebSockets are off.
+The manifest records the list and every refused request. The guard is one layer: a name can change what
+it resolves to between the check and the connection, so the network policy around the process is what
+finally stops a request.
+
+**Export.** `export <video>` writes one take to a matrix of formats (`mp4`, `webm`, `hevc`, `gif`,
+`prores`) and aspects (`16:9`, `9:16`, `1:1`, `4:5`, `4:3`, `21:9`), plus any `--platforms` presets, and
+`export.json` (schema `cinematic-pointer/export@1`). Each output is measured before it is listed: size
+in bytes, length against the take, the dimensions of its aspect, its codec, sound when the take has
+sound, and two frames that differ. A file that fails a measurement is deleted and listed under `failed`
+with the reason. The manifest also says whether this FFmpeg build can burn captions. Exit 0 when every
+target passed, 1 when any failed, 2 when nothing could be exported. Unknown formats, aspects and
+platforms are errors, never a default. Outputs are 1080-class (a 16:9 export is 1920x1080), so a
+smaller take is scaled up, and other aspects are a centre crop.
+
+```bash
+npx tsx src/cli.ts export take.mp4 --formats mp4,webm --aspects 16:9,9:16 --out exports/take
+```
+
 **Recorders.** `produce --recorder` picks how a trailer is filmed:
 
 | Recorder            | What it makes                                                                                                                                                                                                                     | Notes                                                                                                                                                                                                                                                                                                                                                       |

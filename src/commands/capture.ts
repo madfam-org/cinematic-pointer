@@ -12,6 +12,7 @@ interface CapturePageOptions {
   tile: string;
   maxHeight: string;
   browser: string;
+  allowHosts?: string;
 }
 
 const BROWSERS = ['chromium', 'firefox', 'webkit'];
@@ -35,6 +36,10 @@ export async function capturePageCommand(url: string, options: CapturePageOption
       tileSize: parsePixels('tile', options.tile, 256, 8192),
       maxHeight: parsePixels('max-height', options.maxHeight, 256, 200000),
       browserType: options.browser as BrowserType,
+      allowHosts: options.allowHosts
+        ?.split(',')
+        .map((host) => host.trim())
+        .filter(Boolean),
     });
     let blank = 0;
     for (const tile of manifest.tiles) {
@@ -47,7 +52,7 @@ export async function capturePageCommand(url: string, options: CapturePageOption
         `truncated=${manifest.truncated} overflows_width=${manifest.overflowsWidth} ` +
         `status=${manifest.status} grid=${manifest.grid.cols}x${manifest.grid.rows} ` +
         `tiles=${manifest.tiles.length} blank=${blank} bytes=${bytes} ` +
-        `landmarks=${manifest.landmarks.length}`,
+        `landmarks=${manifest.landmarks.length} blocked_requests=${manifest.blockedRequests.length}`,
     );
     if (manifest.truncated) {
       console.warn(

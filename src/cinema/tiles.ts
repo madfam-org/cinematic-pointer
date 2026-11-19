@@ -44,6 +44,10 @@ export interface PageTilesManifest {
   /** The page's own width. Larger than `width` when content overflows sideways and is not pictured. */
   pageWidth: number;
   overflowsWidth: boolean;
+  /** The host list the capture ran under, or null when it ran unrestricted. */
+  allowHosts: string[] | null;
+  /** Requests the egress guard refused: a picture missing something says why here. */
+  blockedRequests: { url: string; reason: string }[];
   /** True when the page is taller than the limit, so the tiles do not reach its end. */
   truncated: boolean;
   tileSize: number;
@@ -63,6 +67,8 @@ export interface TileCaptureOptions {
   /** Pages taller than this are cut off, and the manifest says so. */
   maxHeight?: number;
   browserType?: BrowserType;
+  /** Hosts the page may navigate to; also turns on the egress guard. See `egress.ts`. */
+  allowHosts?: string[];
   /** Injected for tests. */
   now?: () => Date;
 }
@@ -127,7 +133,13 @@ export async function capturePageTiles(options: TileCaptureOptions): Promise<Pag
   }
 
   const manifest = await withSettledPage(
-    { url: options.url, width, walkHeight: maxHeight, browserType: options.browserType },
+    {
+      url: options.url,
+      width,
+      walkHeight: maxHeight,
+      browserType: options.browserType,
+      allowHosts: options.allowHosts,
+    },
     async (page, facts): Promise<PageTilesManifest> => {
       if (facts.status === null || facts.status >= 400) {
         throw new Error(
@@ -178,6 +190,8 @@ export async function capturePageTiles(options: TileCaptureOptions): Promise<Pag
         truncated: facts.height > maxHeight,
         pageWidth: facts.width,
         overflowsWidth: facts.width > width,
+        allowHosts: options.allowHosts ?? null,
+        blockedRequests: facts.blocked,
         tileSize,
         grid: { cols: last.col + 1, rows: last.row + 1 },
         background: facts.background,

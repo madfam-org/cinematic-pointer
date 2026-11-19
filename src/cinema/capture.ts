@@ -12,6 +12,7 @@ import sharp from 'sharp';
 
 import { BrowserType } from '../drivers/playwright';
 
+import { guardEgress, hostAllowed } from './egress';
 import { Landmark, PageCapture } from './types';
 
 export interface CaptureOptions {
@@ -74,9 +75,11 @@ export interface PageFacts {
   status: number | null;
   /** Where the browser ended up after redirects. */
   finalUrl: string;
+  /** Requests the egress guard refused. Empty when no host list was given. */
+  blocked: { url: string; reason: string }[];
 }
 
-type MeasuredFacts = Omit<PageFacts, 'status' | 'finalUrl'>;
+type MeasuredFacts = Omit<PageFacts, 'status' | 'finalUrl' | 'blocked'>;
 
 /** Measure the page as it stands now. */
 export async function measurePage(page: Page): Promise<MeasuredFacts> {
@@ -88,7 +91,14 @@ export async function measurePage(page: Page): Promise<MeasuredFacts> {
  * hands the settled page to `use`. Read-only: it scrolls and looks. It clicks nothing.
  */
 export async function withSettledPage<T>(
-  options: { url: string; width: number; walkHeight: number; browserType?: BrowserType },
+  options: {
+    url: string;
+    width: number;
+    walkHeight: number;
+    browserType?: BrowserType;
+    /** When given, the browser may navigate only to these hosts and reach only public addresses. */
+    allowHosts?: string[];
+  },
   use: (page: Page, facts: PageFacts) => Promise<T>,
 ): Promise<T> {
   const launcher = { chromium, firefox, webkit }[options.browserType ?? 'chromium'];
@@ -98,9 +108,22 @@ export async function withSettledPage<T>(
       viewport: { width: options.width, height: 900 },
       deviceScaleFactor: 1,
       reducedMotion: 'reduce',
+      // A service worker makes requests the egress guard does not see.
+      serviceWorkers: options.allowHosts ? 'block' : 'allow',
     });
+    const guard = options.allowHosts ? await guardEgress(context, options.allowHosts) : undefined;
     const page = await context.newPage();
-    const response = await page.goto(options.url, { waitUntil: 'load', timeout: 60000 });
+    const response = await page
+      .goto(options.url, { waitUntil: 'load', timeout: 60000 })
+      .catch((error: unknown) => {
+        // When the guard refused the page itself, say that instead of a browser error.
+        const refused = guard?.blocked.find((entry) => entry.url.startsWith(options.url));
+        if (refused) throw new Error(`The page was refused: ${refused.reason}`);
+        throw error;
+      });
+    if (options.allowHosts && !hostAllowed(new URL(page.url()).hostname, options.allowHosts)) {
+      throw new Error(`The page ended on ${new URL(page.url()).hostname}, which is not listed`);
+    }
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => undefined);
 
     // The height is re-read as the walk goes: content that appears on scroll makes the page longer,
@@ -116,6 +139,7 @@ export async function withSettledPage<T>(
       ...(await measurePage(page)),
       status: response ? response.status() : null,
       finalUrl: page.url(),
+      blocked: guard ? guard.blocked : [],
     });
   } finally {
     await browser.close();
