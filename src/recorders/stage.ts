@@ -24,6 +24,10 @@ export interface StageRecordOptions {
   /** Colour grade applied at encode time. */
   grade?: boolean;
   onFrame?: (frame: number, total: number) => void;
+  /** Extra Chromium flags, e.g. to draw WebGL in software or let a local stage load local files. */
+  launchArgs?: string[];
+  /** Stop after this many seconds of stage time: a timed sample of a longer stage. */
+  maxSeconds?: number;
 }
 
 export interface StageRecordResult {
@@ -32,6 +36,10 @@ export interface StageRecordResult {
   subFrames: number;
   fps: number;
   duration: number;
+  /** What the stage says about itself (`window.__stage.info`), when it says anything. */
+  info?: Record<string, unknown>;
+  /** Wall-clock seconds spent seeking and picturing, without the encode. */
+  drawSeconds: number;
 }
 
 /** Sub-frames per frame at full quality, and in a draft (no motion blur, a fifth of the work). */
@@ -115,7 +123,7 @@ export async function recordStage(options: StageRecordOptions): Promise<StageRec
   await mkdir(framesDir, { recursive: true });
   await mkdir(path.dirname(options.outputPath), { recursive: true });
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, args: options.launchArgs ?? [] });
   try {
     const context = await browser.newContext({
       viewport: { width: options.frame.w, height: options.frame.h },
@@ -124,8 +132,14 @@ export async function recordStage(options: StageRecordOptions): Promise<StageRec
     const page = await context.newPage();
     await page.goto(pathToFileURL(path.resolve(options.stagePath)).href, { waitUntil: 'load' });
     await page.evaluate('window.__stage.ready');
-    const duration = (await page.evaluate('window.__stage.duration')) as number;
-    if (!(duration > 0)) throw new Error('The stage reports no duration');
+    const full = (await page.evaluate('window.__stage.duration')) as number;
+    if (!(full > 0)) throw new Error('The stage reports no duration');
+    const duration = options.maxSeconds ? Math.min(full, options.maxSeconds) : full;
+    const info = (await page.evaluate('window.__stage.info ?? null')) as Record<
+      string,
+      unknown
+    > | null;
+    const drawStarted = Date.now();
 
     const captureFps = fps * shutter;
     const subFrames = Math.max(shutter, Math.round(duration * fps) * shutter);
@@ -139,6 +153,8 @@ export async function recordStage(options: StageRecordOptions): Promise<StageRec
       options.onFrame?.(i + 1, subFrames);
     }
 
+    const drawSeconds = (Date.now() - drawStarted) / 1000;
+
     await encode(
       framesDir,
       captureFps,
@@ -151,6 +167,8 @@ export async function recordStage(options: StageRecordOptions): Promise<StageRec
       subFrames,
       fps,
       duration,
+      ...(info ? { info } : {}),
+      drawSeconds,
     };
   } finally {
     await browser.close();

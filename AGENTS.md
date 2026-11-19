@@ -122,6 +122,21 @@ Outputs are written as uid 1001. When mounting a host directory on Linux, make i
 user or pass `--user "$(id -u)"`. Paths such as `--catalog` default to the working directory, so name
 them (`/opt/cinematic-pointer/catalog/products.json`) when running from `/work`.
 
+**Estate tour.** `tour` films a flight past each product's captured page (RFC 0061 §4b). It reads one
+`capture page` output per product from `<captures>/<slug>/`, stands each page in space as a tall panel,
+one row per registry stack layer (soil lowest; `catalog/products.json` now carries `layer`), and flies
+the camera to each panel and down it. The direction is plain data computed in `src/tour/layout.ts`
+(panels, shots, camera samples), so it is tested without a browser; the page built by
+`src/tour/stage.ts` only draws it with three.js, which is bundled in, and implements the stage contract.
+A page taller than four panel-widths is cut and marked `cropped`. `tour.json` records what drew the
+frames (`renderer`), the shots, products with no capture, and the time per picture. `--software` draws
+WebGL on the CPU, as a machine without a GPU does; `--seconds n` films a timed sample.
+
+```bash
+npx tsx src/cli.ts capture page https://enclii.dev/ --out captures/enclii
+npx tsx src/cli.ts tour --only enclii --draft --viewport 1280x720 --out exports/tour
+```
+
 **Recorders.** `produce --recorder` picks how a trailer is filmed:
 
 | Recorder            | What it makes                                                                                                                                                                                                                     | Notes                                                                                                                                                                                                                                                                                                                                                       |

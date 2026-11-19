@@ -11,6 +11,7 @@ import { exportCommand } from './commands/export';
 import { produceCommand } from './commands/produce';
 import { reframeVideo, listAspects } from './commands/reframe';
 import { runJourney } from './commands/run';
+import { tourCommand } from './commands/tour';
 
 const program = new Command();
 
@@ -121,6 +122,23 @@ program
   )
   .option('-q, --quality <level>', 'draft, standard or high', 'standard')
   .action(exportCommand);
+
+program
+  .command('tour')
+  .description("Film the estate tour: a flight past each product's captured page")
+  .option('--catalog <file>', 'Product catalog', 'catalog/products.json')
+  .option(
+    '--captures <dir>',
+    'Directory holding one `capture page` output per product slug',
+    'captures',
+  )
+  .option('-o, --out <dir>', 'Output directory', 'exports/tour')
+  .option('--viewport <WxH>', 'Frame size', '1920x1080')
+  .option('--only <slugs>', 'Comma-separated product slugs to include')
+  .option('--draft', 'One picture per frame instead of five (no motion blur)', false)
+  .option('--software', 'Draw WebGL on the CPU, as a machine without a GPU does', false)
+  .option('--seconds <n>', 'Film only the first n seconds: a timed sample')
+  .action(tourCommand);
 
 program
   .command('produce')
