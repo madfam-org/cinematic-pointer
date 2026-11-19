@@ -12,7 +12,7 @@ import sharp from 'sharp';
 
 import { BrowserType } from '../drivers/playwright';
 
-import { guardEgress, hostAllowed } from './egress';
+import { GUARDED_CHROMIUM_ARGS, guardPage, Refusal, startEgressProxy } from './egress';
 import { Landmark, PageCapture } from './types';
 
 export interface CaptureOptions {
@@ -99,31 +99,52 @@ export async function withSettledPage<T>(
     /** When given, the browser may navigate only to these hosts and reach only public addresses. */
     allowHosts?: string[];
   },
-  use: (page: Page, facts: PageFacts) => Promise<T>,
+  /** `hold` throws once the page has broken a rule; call it before each picture. */
+  use: (page: Page, facts: PageFacts, hold: () => void) => Promise<T>,
 ): Promise<T> {
+  const guarded = options.allowHosts !== undefined;
+  if (guarded && (options.browserType ?? 'chromium') !== 'chromium') {
+    throw new Error('A host list is enforced with Chromium only');
+  }
+  const refused: Refusal[] = [];
+  // With a host list, every connection the browser makes goes through the egress proxy.
+  const proxy = guarded ? await startEgressProxy({ refused }) : undefined;
   const launcher = { chromium, firefox, webkit }[options.browserType ?? 'chromium'];
-  const browser = await launcher.launch({ headless: true });
+  const browser = await launcher
+    .launch({
+      headless: true,
+      ...(proxy ? { proxy: { server: proxy.server }, args: GUARDED_CHROMIUM_ARGS } : {}),
+    })
+    .catch(async (error: unknown) => {
+      await proxy?.close();
+      throw error;
+    });
   try {
     const context = await browser.newContext({
       viewport: { width: options.width, height: 900 },
       deviceScaleFactor: 1,
       reducedMotion: 'reduce',
-      // A service worker makes requests the egress guard does not see.
-      serviceWorkers: options.allowHosts ? 'block' : 'allow',
+      serviceWorkers: guarded ? 'block' : 'allow',
     });
-    const guard = options.allowHosts ? await guardEgress(context, options.allowHosts) : undefined;
+    const guard = options.allowHosts
+      ? await guardPage(context, options.allowHosts, refused)
+      : undefined;
+    /** Fail the capture the moment the page has left the list: it must not be pictured. */
+    const hold = () => {
+      const violation = guard?.violation();
+      if (violation) throw new Error(`The capture was stopped: ${violation}`);
+    };
     const page = await context.newPage();
     const response = await page
       .goto(options.url, { waitUntil: 'load', timeout: 60000 })
       .catch((error: unknown) => {
+        hold();
         // When the guard refused the page itself, say that instead of a browser error.
-        const refused = guard?.blocked.find((entry) => entry.url.startsWith(options.url));
-        if (refused) throw new Error(`The page was refused: ${refused.reason}`);
+        const first = refused.find((entry) => entry.url.startsWith(options.url));
+        if (first) throw new Error(`The page was refused: ${first.reason}`);
         throw error;
       });
-    if (options.allowHosts && !hostAllowed(new URL(page.url()).hostname, options.allowHosts)) {
-      throw new Error(`The page ended on ${new URL(page.url()).hostname}, which is not listed`);
-    }
+    hold();
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => undefined);
 
     // The height is re-read as the walk goes: content that appears on scroll makes the page longer,
@@ -134,15 +155,25 @@ export async function withSettledPage<T>(
     }
     await page.evaluate('window.scrollTo(0, 0)');
     await page.waitForTimeout(300);
+    hold();
 
-    return await use(page, {
-      ...(await measurePage(page)),
-      status: response ? response.status() : null,
-      finalUrl: page.url(),
-      blocked: guard ? guard.blocked : [],
-    });
+    const result = await use(
+      page,
+      {
+        ...(await measurePage(page)),
+        status: response ? response.status() : null,
+        finalUrl: page.url(),
+        blocked: refused,
+      },
+      hold,
+    );
+    // Checked once more after the pictures: a page that left the list while it was being
+    // pictured fails here, and the caller discards what was written.
+    hold();
+    return result;
   } finally {
     await browser.close();
+    await proxy?.close();
   }
 }
 

@@ -370,7 +370,8 @@ async function exportSingleFormat(options: {
   const qualityPreset = getQualityPreset(options.quality);
 
   // Build FFmpeg command
-  const cmd = ffmpeg().overwrite().input(options.inputPath);
+  // The take is read as a file and nothing else: see `measure` in proof.ts.
+  const cmd = ffmpeg().overwrite().input(options.inputPath, ['-protocol_whitelist', 'file']);
 
   // Handle aspect ratio conversion
   const targetAspect = aspectConfig.ratio;

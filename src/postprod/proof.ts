@@ -13,6 +13,8 @@ export async function grabFrame(filePath: string, seconds: number): Promise<Buff
       'error',
       '-ss',
       seconds.toFixed(2),
+      '-protocol_whitelist',
+      'file,pipe',
       '-i',
       filePath,
       '-frames:v',
@@ -36,6 +38,8 @@ export interface Measured {
   height: number;
   /** Codec of the first video stream as ffprobe names it (`h264`, `vp9`, `hevc`, `gif`, `prores`). */
   videoCodec: string;
+  /** The container as ffprobe names it, e.g. `mov,mp4,m4a,3gp,3g2,mj2` or `matroska,webm`. */
+  container: string;
   audio: boolean;
 }
 
@@ -45,6 +49,10 @@ export function measure(filePath: string): Promise<Measured> {
     const proc = spawn('ffprobe', [
       '-v',
       'error',
+      // A file is read as a file. Without this a playlist or script dressed up as a video could
+      // make ffprobe open other files or network addresses.
+      '-protocol_whitelist',
+      'file',
       '-print_format',
       'json',
       '-show_format',
@@ -60,7 +68,7 @@ export function measure(filePath: string): Promise<Measured> {
       if (code !== 0) return reject(new Error(`ffprobe could not read ${filePath}`));
       try {
         const data = JSON.parse(out) as {
-          format?: { duration?: string };
+          format?: { duration?: string; format_name?: string };
           streams?: {
             codec_type: string;
             codec_name?: string;
@@ -78,6 +86,7 @@ export function measure(filePath: string): Promise<Measured> {
           width: video.width,
           height: video.height,
           videoCodec: video.codec_name ?? '',
+          container: data.format?.format_name ?? '',
           audio: Boolean(data.streams?.some((s) => s.codec_type === 'audio')),
         });
       } catch (error) {

@@ -120,85 +120,103 @@ export function tileGrid(width: number, height: number, tileSize: number): Tile[
   return tiles;
 }
 
+/** Remove this capture's tiles and manifest from a directory. */
+async function discardCapture(outDir: string): Promise<void> {
+  for (const name of await readdir(outDir)) {
+    if (name === 'manifest.json' || /^tile-r\d+-c\d+\.png$/.test(name)) {
+      await rm(path.join(outDir, name), { force: true });
+    }
+  }
+}
+
+/** A capture that fails leaves no picture behind: a tile of a refused page must not survive. */
+async function withSettledPageOrDiscard<T>(outDir: string, run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    await discardCapture(outDir).catch(() => undefined);
+    throw error;
+  }
+}
+
 export async function capturePageTiles(options: TileCaptureOptions): Promise<PageTilesManifest> {
   const width = options.width ?? 1440;
   const tileSize = options.tileSize ?? 2048;
   const maxHeight = options.maxHeight ?? 60000;
   await mkdir(options.outDir, { recursive: true });
   // An earlier capture's tiles or manifest must not sit beside this one and pass for part of it.
-  for (const name of await readdir(options.outDir)) {
-    if (name === 'manifest.json' || /^tile-r\d+-c\d+\.png$/.test(name)) {
-      await rm(path.join(options.outDir, name), { force: true });
-    }
-  }
+  await discardCapture(options.outDir);
 
-  const manifest = await withSettledPage(
-    {
-      url: options.url,
-      width,
-      walkHeight: maxHeight,
-      browserType: options.browserType,
-      allowHosts: options.allowHosts,
-    },
-    async (page, facts): Promise<PageTilesManifest> => {
-      if (facts.status === null || facts.status >= 400) {
-        throw new Error(
-          `${options.url} answered ${facts.status ?? 'nothing'}; an error page is not a capture`,
-        );
-      }
-      const height = Math.min(facts.height, maxHeight);
-      const grid = tileGrid(width, height, tileSize);
-      const tiles: PageTilesManifest['tiles'] = [];
-      for (const tile of grid) {
-        const file = path.join(options.outDir, tile.file);
-        // A clip of the full page: the viewport is not resized, so viewport-height layouts keep
-        // their shape, and no picture larger than one tile is ever held.
-        await page.screenshot({
-          path: file,
-          fullPage: true,
-          // Tiles are taken one after another; anything still moving would show as a seam.
-          animations: 'disabled',
-          caret: 'hide',
-          clip: { x: tile.x, y: tile.y, width: tile.w, height: tile.h },
-        });
-        const meta = await sharp(file).metadata();
-        if (meta.width !== tile.w || meta.height !== tile.h) {
+  const manifest = await withSettledPageOrDiscard(options.outDir, () =>
+    withSettledPage(
+      {
+        url: options.url,
+        width,
+        walkHeight: maxHeight,
+        browserType: options.browserType,
+        allowHosts: options.allowHosts,
+      },
+      async (page, facts, hold): Promise<PageTilesManifest> => {
+        if (facts.status === null || facts.status >= 400) {
           throw new Error(
-            `${tile.file} is ${meta.width}x${meta.height}, expected ${tile.w}x${tile.h}`,
+            `${options.url} answered ${facts.status ?? 'nothing'}; an error page is not a capture`,
           );
         }
-        tiles.push({ ...tile, bytes: (await stat(file)).size });
-      }
-      const after = await measurePage(page);
-      if (after.height !== facts.height) {
-        throw new Error(
-          `The page changed height while it was captured (${facts.height}px to ${after.height}px); ` +
-            'the tiles would not fit together',
-        );
-      }
-      const last = grid[grid.length - 1];
-      return {
-        schema: PAGE_TILES_SCHEMA,
-        url: options.url,
-        finalUrl: facts.finalUrl,
-        status: facts.status,
-        title: facts.title,
-        capturedAt: (options.now ?? (() => new Date()))().toISOString(),
-        width,
-        height,
-        pageHeight: facts.height,
-        truncated: facts.height > maxHeight,
-        pageWidth: facts.width,
-        overflowsWidth: facts.width > width,
-        allowHosts: options.allowHosts ?? null,
-        blockedRequests: facts.blocked,
-        tileSize,
-        grid: { cols: last.col + 1, rows: last.row + 1 },
-        background: facts.background,
-        tiles,
-        landmarks: await readLandmarks(page, width, height),
-      };
-    },
+        const height = Math.min(facts.height, maxHeight);
+        const grid = tileGrid(width, height, tileSize);
+        const tiles: PageTilesManifest['tiles'] = [];
+        for (const tile of grid) {
+          hold();
+          const file = path.join(options.outDir, tile.file);
+          // A clip of the full page: the viewport is not resized, so viewport-height layouts keep
+          // their shape, and no picture larger than one tile is ever held.
+          await page.screenshot({
+            path: file,
+            fullPage: true,
+            // Tiles are taken one after another; anything still moving would show as a seam.
+            animations: 'disabled',
+            caret: 'hide',
+            clip: { x: tile.x, y: tile.y, width: tile.w, height: tile.h },
+          });
+          const meta = await sharp(file).metadata();
+          if (meta.width !== tile.w || meta.height !== tile.h) {
+            throw new Error(
+              `${tile.file} is ${meta.width}x${meta.height}, expected ${tile.w}x${tile.h}`,
+            );
+          }
+          tiles.push({ ...tile, bytes: (await stat(file)).size });
+        }
+        const after = await measurePage(page);
+        if (after.height !== facts.height) {
+          throw new Error(
+            `The page changed height while it was captured (${facts.height}px to ${after.height}px); ` +
+              'the tiles would not fit together',
+          );
+        }
+        const last = grid[grid.length - 1];
+        return {
+          schema: PAGE_TILES_SCHEMA,
+          url: options.url,
+          finalUrl: facts.finalUrl,
+          status: facts.status,
+          title: facts.title,
+          capturedAt: (options.now ?? (() => new Date()))().toISOString(),
+          width,
+          height,
+          pageHeight: facts.height,
+          truncated: facts.height > maxHeight,
+          pageWidth: facts.width,
+          overflowsWidth: facts.width > width,
+          allowHosts: options.allowHosts ?? null,
+          blockedRequests: facts.blocked,
+          tileSize,
+          grid: { cols: last.col + 1, rows: last.row + 1 },
+          background: facts.background,
+          tiles,
+          landmarks: await readLandmarks(page, width, height),
+        };
+      },
+    ),
   );
 
   await writeFile(

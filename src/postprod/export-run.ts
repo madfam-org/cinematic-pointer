@@ -84,12 +84,12 @@ export function exportMatrix(request: {
   const aspects = request.aspects ?? [];
   const platforms = request.platforms ?? [];
   for (const format of formats) {
-    if (!outputFormats[format]) {
+    if (!Object.hasOwn(outputFormats, format)) {
       throw new Error(`Unknown format "${format}". Use ${Object.keys(outputFormats).join(', ')}.`);
     }
   }
   for (const aspect of aspects) {
-    if (!aspectRatios[aspect]) {
+    if (!Object.hasOwn(aspectRatios, aspect)) {
       throw new Error(`Unknown aspect "${aspect}". Use ${Object.keys(aspectRatios).join(', ')}.`);
     }
   }
@@ -107,7 +107,7 @@ export function exportMatrix(request: {
   };
   for (const format of formats) for (const aspect of aspects) add({ format, aspect });
   for (const platform of platforms) {
-    const preset = platformPresets[platform];
+    const preset = Object.hasOwn(platformPresets, platform) ? platformPresets[platform] : null;
     if (!preset) {
       throw new Error(
         `Unknown platform "${platform}". Use ${Object.keys(platformPresets).join(', ')}.`,
@@ -160,11 +160,27 @@ export function exportFileName(base: string, target: ExportTarget): string {
   return `${base}_${target.format}_${target.aspect.replace(':', 'x')}${extension}`;
 }
 
-export async function runExport(options: ExportRunOptions): Promise<ExportManifest> {
+/** Containers a take may be in. Anything else (a playlist, a script, an image) is not a take. */
+const TAKE_CONTAINERS = ['mp4', 'mov', 'matroska', 'webm'];
+
+export function isTakeContainer(container: string): boolean {
+  return container.split(',').some((name) => TAKE_CONTAINERS.includes(name.trim()));
+}
+
+export async function runExport(given: ExportRunOptions): Promise<ExportManifest> {
+  // Absolute paths: a relative name beginning with "-" would be read by FFmpeg as an option.
+  const options = {
+    ...given,
+    inputPath: path.resolve(given.inputPath),
+    outDir: path.resolve(given.outDir),
+  };
   const targets = exportMatrix(options);
   const quality = options.quality ?? 'standard';
   const inputStat = await stat(options.inputPath);
   const input = await measure(options.inputPath);
+  if (!isTakeContainer(input.container)) {
+    throw new Error(`The take is not a video file this tool exports (${input.container || '?'})`);
+  }
   if (!(input.seconds > 0)) throw new Error(`${options.inputPath} has no duration`);
   const inputProblem = await showsOnePicture(options.inputPath, input.seconds);
   if (inputProblem) throw new Error(`The take is not exportable: ${inputProblem}`);

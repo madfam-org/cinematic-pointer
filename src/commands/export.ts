@@ -18,7 +18,8 @@ const list = (value?: string): string[] =>
 
 /**
  * Export one take to a matrix of formats and aspects. Exit 0 when every target passed its
- * measurements, 1 when at least one did not, 2 when nothing could be exported.
+ * measurements, 1 when at least one did not (export.json says which), 2 when the export could
+ * not run at all (bad arguments, an unreadable take).
  */
 export async function exportCommand(video: string, options: ExportCommandOptions): Promise<void> {
   try {

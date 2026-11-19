@@ -14,9 +14,16 @@ jest.mock('chalk', () => ({
   },
 }));
 
-import { exportFileName, exportMatrix, judge } from '../postprod/export-run';
+import { exportFileName, exportMatrix, isTakeContainer, judge } from '../postprod/export-run';
 
-const take = { seconds: 16.4, width: 1280, height: 720, videoCodec: 'h264', audio: true };
+const take = {
+  seconds: 16.4,
+  width: 1280,
+  height: 720,
+  videoCodec: 'h264',
+  container: 'mov,mp4,m4a,3gp,3g2,mj2',
+  audio: true,
+};
 const good = { ...take, width: 1920, height: 1080, bytes: 5_000_000 };
 
 describe('export matrix', () => {
@@ -45,6 +52,16 @@ describe('export matrix', () => {
     expect(() => exportMatrix({ formats: ['avi'], aspects: ['16:9'] })).toThrow('Unknown format');
     expect(() => exportMatrix({ formats: ['mp4'], aspects: ['3:2'] })).toThrow('Unknown aspect');
     expect(() => exportMatrix({ platforms: ['myspace'] })).toThrow('Unknown platform');
+  });
+
+  it('does not take a property every object has for a known name', () => {
+    expect(() => exportMatrix({ formats: ['constructor'], aspects: ['16:9'] })).toThrow(
+      'Unknown format',
+    );
+    expect(() => exportMatrix({ formats: ['mp4'], aspects: ['toString'] })).toThrow(
+      'Unknown aspect',
+    );
+    expect(() => exportMatrix({ platforms: ['__proto__'] })).toThrow('Unknown platform');
   });
 
   it('refuses an empty or half-given request', () => {
@@ -95,5 +112,16 @@ describe('export file names', () => {
     const hevc = exportFileName('take', { format: 'hevc', aspect: '16:9' });
     expect(mp4).toBe('take_mp4_16x9.mp4');
     expect(hevc).toBe('take_hevc_16x9.mp4');
+  });
+});
+
+describe('what counts as a take', () => {
+  it('is a video container', () => {
+    expect(isTakeContainer('mov,mp4,m4a,3gp,3g2,mj2')).toBe(true);
+    expect(isTakeContainer('matroska,webm')).toBe(true);
+  });
+
+  it.each(['hls', 'concat', 'sdp', 'image2', 'png_pipe', 'lavfi', ''])('is not %s', (container) => {
+    expect(isTakeContainer(container)).toBe(false);
   });
 });
