@@ -34,6 +34,17 @@ export interface StageRecordResult {
   duration: number;
 }
 
+/** Sub-frames per frame at full quality, and in a draft (no motion blur, a fifth of the work). */
+export const FULL_SHUTTER = 5;
+export const DRAFT_SHUTTER = 1;
+
+/** What a take's quality setting means: how many sub-frames, and the note results carry. */
+export function takeQuality(draft: boolean): { shutter: number; note: string } {
+  return draft
+    ? { shutter: DRAFT_SHUTTER, note: 'draft: no motion blur, not a finished take' }
+    : { shutter: FULL_SHUTTER, note: `full: 180 degree shutter, ${FULL_SHUTTER} sub-frames` };
+}
+
 /** The share of each frame interval the shutter is open: 0.5 is the 180 degree shutter of film. */
 export const SHUTTER_OPEN = 0.5;
 
@@ -98,7 +109,7 @@ function encode(framesDir: string, inputFps: number, filters: string, out: strin
 
 export async function recordStage(options: StageRecordOptions): Promise<StageRecordResult> {
   const fps = options.fps ?? 24;
-  const shutter = Math.max(1, Math.round(options.shutter ?? 5));
+  const shutter = Math.max(1, Math.round(options.shutter ?? FULL_SHUTTER));
   const framesDir = path.join(options.workDir, 'stage-frames');
   await rm(framesDir, { recursive: true, force: true });
   await mkdir(framesDir, { recursive: true });

@@ -107,6 +107,11 @@ program
     'stepped',
   )
   .option('--no-score', 'Leave a cinematic take silent')
+  .option(
+    '--draft',
+    'Cinematic take without motion blur: a fifth of the work, to check framing, not to publish',
+    false,
+  )
   .option('--dry-run', 'List the selected trailers and render nothing', false)
   .action(produceCommand);
 

@@ -2,7 +2,7 @@ import { cueSource, scoreArgs, scoreCues } from '../cinema/score';
 import { direct, pickMontage } from '../cinema/screenplay';
 import { buildStageHtml } from '../cinema/stage';
 import { Landmark, PageCapture } from '../cinema/types';
-import { stageFilters, subFrameTime } from '../recorders/stage';
+import { stageFilters, subFrameTime, takeQuality } from '../recorders/stage';
 
 const mark = (kind: Landmark['kind'], y: number, text = kind): Landmark => ({
   kind,
@@ -215,5 +215,21 @@ describe('shutter', () => {
 
   it('is plain frame time with a single sub-frame', () => {
     expect(subFrameTime(48, 24, 1)).toBe(2);
+  });
+});
+
+describe('take quality', () => {
+  it('a full take uses the five sub-frame shutter and says so', () => {
+    const full = takeQuality(false);
+    expect(full.shutter).toBe(5);
+    expect(full.note).toMatch(/^full/);
+  });
+
+  it('a draft draws one picture per frame and is never labelled finished', () => {
+    const draft = takeQuality(true);
+    expect(draft.shutter).toBe(1);
+    expect(draft.note).toMatch(/^draft/);
+    expect(draft.note).toContain('not a finished take');
+    expect(stageFilters(24, draft.shutter, true)).not.toContain('tmix');
   });
 });

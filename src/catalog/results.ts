@@ -33,6 +33,8 @@ export interface TrailerResult {
   landmarks?: number;
   /** What the take carries for sound, stated so a silent trailer is never mistaken for a finished one. */
   sound?: string;
+  /** Whether a cinematic take is full quality or a draft, so a draft is never mistaken for a finished one. */
+  quality?: string;
   /** Frames drawn by a stepped take. */
   frames?: number;
   renders: RenderProof[];

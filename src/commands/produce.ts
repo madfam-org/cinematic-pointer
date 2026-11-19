@@ -27,7 +27,7 @@ import {
   reframeVideo,
   runPipeline,
 } from '../postprod';
-import { recordStage } from '../recorders/stage';
+import { recordStage, takeQuality } from '../recorders/stage';
 import { recordStepped } from '../recorders/stepped';
 
 /** A rendered file shorter than this did not film a tour. */
@@ -45,6 +45,8 @@ export interface ProduceOptions {
   recorder?: string;
   /** `--no-score` leaves a cinematic take silent. */
   score?: boolean;
+  /** `--draft` renders a cinematic take without motion blur, for a constrained machine. */
+  draft?: boolean;
   /** `WxH`. Overrides every journey's viewport, e.g. to record smaller on a constrained machine. */
   viewport?: string;
 }
@@ -167,7 +169,15 @@ async function produceOne(
       path.join(runDir, 'screenplay.json'),
       JSON.stringify(screenplay, null, 2) + '\n',
     );
-    const take = await recordStage({ stagePath, outputPath: master, workDir: runDir, frame });
+    const quality = takeQuality(options.draft === true);
+    const take = await recordStage({
+      stagePath,
+      outputPath: master,
+      workDir: runDir,
+      frame,
+      shutter: quality.shutter,
+    });
+    result.quality = quality.note;
     result.recorder = 'cinematic';
     result.frames = take.frames;
     result.shots = screenplay.shots.length;
