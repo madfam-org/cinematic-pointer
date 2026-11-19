@@ -38,7 +38,10 @@ COPY catalog ./catalog
 COPY journeys ./journeys
 COPY LICENSE NOTICE ./
 
-RUN useradd -r -u 1001 -m -d /home/pointer pointer
+# The home directory already exists by now (npm made it, as root), so it is handed over
+# explicitly, together with the working directory outputs are written to.
+RUN useradd -r -u 1001 -d /home/pointer pointer \
+    && install -d -o 1001 -g 1001 /home/pointer /work
 USER 1001
 WORKDIR /work
 
@@ -51,6 +54,7 @@ RUN set -eu; \
     $CLI export --help > /dev/null; \
     $CLI produce --help > /dev/null; \
     ffmpeg -version > /dev/null; \
+    touch /work/.writable "$HOME/.writable" && rm /work/.writable "$HOME/.writable"; \
     cd /opt/cinematic-pointer; \
     node -e "require('sharp'); require('esbuild')" 2>/dev/null || node -e "require('sharp')"; \
     node -e "const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();const p=await b.newPage();await p.setContent('<h1>ok</h1>');const t=await p.textContent('h1');await b.close();if(t!=='ok')process.exit(1);console.log('chromium: opened a page')})().catch(e=>{console.error(e);process.exit(1)})"

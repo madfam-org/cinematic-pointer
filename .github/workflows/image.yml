@@ -75,7 +75,8 @@ jobs:
           set -euo pipefail
           test "$(docker run --rm --entrypoint id cinematic-pointer:pr -u)" = "1001"
           docker run --rm cinematic-pointer:pr --version
-          docker run --rm cinematic-pointer:pr capture page --help | grep -q -- '--out'
+          help="$(docker run --rm cinematic-pointer:pr capture page --help)"
+          grep -q -- '--allow-hosts' <<<"$help"
           echo "image: runs as uid 1001, CLI answers OK"
 
   publish:
