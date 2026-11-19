@@ -9,14 +9,12 @@ coverage
 test-results
 playwright-report
 dist
-*.md
 .env*
 .nvmrc
 .prettierrc.json
 .prettierignore
 jest.config.js
 playwright.config.ts
-tsconfig.json
 eslint.config.js
 tests
 src/__tests__
@@ -25,3 +23,5 @@ exports
 *.mp4
 *.webm
 *.mov
+*.md
+captures
