@@ -54,6 +54,7 @@ const LANDMARK_SCRIPT = `(() => {
 
 const PAGE_FACTS_SCRIPT = `(() => ({
   title: document.title || '',
+  width: Math.max(document.documentElement.scrollWidth, document.body ? document.body.scrollWidth : 0),
   height: Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0),
   background: (() => {
     const b = getComputedStyle(document.body).backgroundColor;
@@ -63,10 +64,23 @@ const PAGE_FACTS_SCRIPT = `(() => ({
   })(),
 }))()`;
 
-interface PageFacts {
+export interface PageFacts {
   title: string;
+  /** The page's own scroll size, which can exceed the width it was laid out at. */
+  width: number;
   height: number;
   background: string;
+  /** HTTP status of the document, or null when the browser got no response. */
+  status: number | null;
+  /** Where the browser ended up after redirects. */
+  finalUrl: string;
+}
+
+type MeasuredFacts = Omit<PageFacts, 'status' | 'finalUrl'>;
+
+/** Measure the page as it stands now. */
+export async function measurePage(page: Page): Promise<MeasuredFacts> {
+  return (await page.evaluate(PAGE_FACTS_SCRIPT)) as MeasuredFacts;
 }
 
 /**
@@ -86,18 +100,23 @@ export async function withSettledPage<T>(
       reducedMotion: 'reduce',
     });
     const page = await context.newPage();
-    await page.goto(options.url, { waitUntil: 'load', timeout: 60000 });
+    const response = await page.goto(options.url, { waitUntil: 'load', timeout: 60000 });
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => undefined);
 
-    const firstHeight = ((await page.evaluate(PAGE_FACTS_SCRIPT)) as PageFacts).height;
-    for (let y = 0; y < Math.min(firstHeight, options.walkHeight); y += 700) {
+    // The height is re-read as the walk goes: content that appears on scroll makes the page longer,
+    // and that part has to be walked too or its lazy images are pictured unloaded.
+    for (let y = 0; y < Math.min((await measurePage(page)).height, options.walkHeight); y += 700) {
       await page.evaluate(`window.scrollTo(0, ${y})`);
       await page.waitForTimeout(120);
     }
     await page.evaluate('window.scrollTo(0, 0)');
     await page.waitForTimeout(300);
 
-    return await use(page, (await page.evaluate(PAGE_FACTS_SCRIPT)) as PageFacts);
+    return await use(page, {
+      ...(await measurePage(page)),
+      status: response ? response.status() : null,
+      finalUrl: page.url(),
+    });
   } finally {
     await browser.close();
   }

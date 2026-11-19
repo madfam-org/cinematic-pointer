@@ -5,14 +5,14 @@
  * as one picture is too large for a browser, a GPU texture or a print layer, so it is cut into a
  * grid and the manifest says how the pieces fit. Read-only, like every capture.
  */
-import { mkdir, stat, writeFile } from 'fs/promises';
+import { mkdir, readdir, rm, stat, writeFile } from 'fs/promises';
 import path from 'path';
 
 import sharp from 'sharp';
 
 import { BrowserType } from '../drivers/playwright';
 
-import { readLandmarks, withSettledPage } from './capture';
+import { measurePage, readLandmarks, withSettledPage } from './capture';
 import { Landmark } from './types';
 
 export const PAGE_TILES_SCHEMA = 'cinematic-pointer/page-tiles@1';
@@ -31,6 +31,9 @@ export interface Tile {
 export interface PageTilesManifest {
   schema: typeof PAGE_TILES_SCHEMA;
   url: string;
+  /** Where the browser ended up after redirects, and the document's HTTP status. */
+  finalUrl: string;
+  status: number;
   title: string;
   capturedAt: string;
   /** Size of the captured area in page pixels. */
@@ -38,6 +41,9 @@ export interface PageTilesManifest {
   height: number;
   /** The page's own height. Larger than `height` when the capture was cut off. */
   pageHeight: number;
+  /** The page's own width. Larger than `width` when content overflows sideways and is not pictured. */
+  pageWidth: number;
+  overflowsWidth: boolean;
   /** True when the page is taller than the limit, so the tiles do not reach its end. */
   truncated: boolean;
   tileSize: number;
@@ -59,6 +65,29 @@ export interface TileCaptureOptions {
   browserType?: BrowserType;
   /** Injected for tests. */
   now?: () => Date;
+}
+
+/** A pixel option: plain digits within a range, so a typo cannot ask for millions of tiles. */
+export function parsePixels(name: string, value: string, min: number, max: number): number {
+  const n = /^\d+$/.test(value) ? Number(value) : NaN;
+  if (!(n >= min && n <= max)) {
+    throw new Error(`--${name} must be a whole number from ${min} to ${max}, got "${value}"`);
+  }
+  return n;
+}
+
+/** Only pages on the web are captured, never local files or browser pages. */
+export function webUrl(value: string): string {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(`"${value}" is not a URL`);
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error(`Only http and https pages are captured, got ${url.protocol}`);
+  }
+  return url.href;
 }
 
 /** The grid that covers `width` by `height` with tiles of at most `tileSize`, row by row. */
@@ -90,10 +119,21 @@ export async function capturePageTiles(options: TileCaptureOptions): Promise<Pag
   const tileSize = options.tileSize ?? 2048;
   const maxHeight = options.maxHeight ?? 60000;
   await mkdir(options.outDir, { recursive: true });
+  // An earlier capture's tiles or manifest must not sit beside this one and pass for part of it.
+  for (const name of await readdir(options.outDir)) {
+    if (name === 'manifest.json' || /^tile-r\d+-c\d+\.png$/.test(name)) {
+      await rm(path.join(options.outDir, name), { force: true });
+    }
+  }
 
   const manifest = await withSettledPage(
     { url: options.url, width, walkHeight: maxHeight, browserType: options.browserType },
     async (page, facts): Promise<PageTilesManifest> => {
+      if (facts.status === null || facts.status >= 400) {
+        throw new Error(
+          `${options.url} answered ${facts.status ?? 'nothing'}; an error page is not a capture`,
+        );
+      }
       const height = Math.min(facts.height, maxHeight);
       const grid = tileGrid(width, height, tileSize);
       const tiles: PageTilesManifest['tiles'] = [];
@@ -104,6 +144,9 @@ export async function capturePageTiles(options: TileCaptureOptions): Promise<Pag
         await page.screenshot({
           path: file,
           fullPage: true,
+          // Tiles are taken one after another; anything still moving would show as a seam.
+          animations: 'disabled',
+          caret: 'hide',
           clip: { x: tile.x, y: tile.y, width: tile.w, height: tile.h },
         });
         const meta = await sharp(file).metadata();
@@ -114,16 +157,27 @@ export async function capturePageTiles(options: TileCaptureOptions): Promise<Pag
         }
         tiles.push({ ...tile, bytes: (await stat(file)).size });
       }
+      const after = await measurePage(page);
+      if (after.height !== facts.height) {
+        throw new Error(
+          `The page changed height while it was captured (${facts.height}px to ${after.height}px); ` +
+            'the tiles would not fit together',
+        );
+      }
       const last = grid[grid.length - 1];
       return {
         schema: PAGE_TILES_SCHEMA,
         url: options.url,
+        finalUrl: facts.finalUrl,
+        status: facts.status,
         title: facts.title,
         capturedAt: (options.now ?? (() => new Date()))().toISOString(),
         width,
         height,
         pageHeight: facts.height,
         truncated: facts.height > maxHeight,
+        pageWidth: facts.width,
+        overflowsWidth: facts.width > width,
         tileSize,
         grid: { cols: last.col + 1, rows: last.row + 1 },
         background: facts.background,

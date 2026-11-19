@@ -3,7 +3,7 @@ import path from 'path';
 import chalk from 'chalk';
 import sharp from 'sharp';
 
-import { capturePageTiles } from '../cinema/tiles';
+import { capturePageTiles, parsePixels, webUrl } from '../cinema/tiles';
 import { BrowserType } from '../drivers/playwright';
 
 interface CapturePageOptions {
@@ -14,11 +14,7 @@ interface CapturePageOptions {
   browser: string;
 }
 
-function wholeNumber(name: string, value: string): number {
-  const n = Number(value);
-  if (!Number.isInteger(n) || n <= 0) throw new Error(`--${name} must be a positive whole number`);
-  return n;
-}
+const BROWSERS = ['chromium', 'firefox', 'webkit'];
 
 /** A tile with no variation at all is a flat colour: nothing of the page is on it. */
 async function isBlank(file: string): Promise<boolean> {
@@ -29,12 +25,15 @@ async function isBlank(file: string): Promise<boolean> {
 /** Capture the full length of a page as tiles plus a manifest. Exit 1 when nothing was pictured. */
 export async function capturePageCommand(url: string, options: CapturePageOptions): Promise<void> {
   try {
+    if (!BROWSERS.includes(options.browser)) {
+      throw new Error(`--browser must be one of ${BROWSERS.join(', ')}`);
+    }
     const manifest = await capturePageTiles({
-      url,
+      url: webUrl(url),
       outDir: options.out,
-      width: wholeNumber('width', options.width),
-      tileSize: wholeNumber('tile', options.tile),
-      maxHeight: wholeNumber('max-height', options.maxHeight),
+      width: parsePixels('width', options.width, 320, 7680),
+      tileSize: parsePixels('tile', options.tile, 256, 8192),
+      maxHeight: parsePixels('max-height', options.maxHeight, 256, 200000),
       browserType: options.browser as BrowserType,
     });
     let blank = 0;
@@ -45,7 +44,8 @@ export async function capturePageCommand(url: string, options: CapturePageOption
     console.log(
       `capture_page=${blank === manifest.tiles.length ? 'BLANK' : 'WRITTEN'} ` +
         `width=${manifest.width} height=${manifest.height} page_height=${manifest.pageHeight} ` +
-        `truncated=${manifest.truncated} grid=${manifest.grid.cols}x${manifest.grid.rows} ` +
+        `truncated=${manifest.truncated} overflows_width=${manifest.overflowsWidth} ` +
+        `status=${manifest.status} grid=${manifest.grid.cols}x${manifest.grid.rows} ` +
         `tiles=${manifest.tiles.length} blank=${blank} bytes=${bytes} ` +
         `landmarks=${manifest.landmarks.length}`,
     );
@@ -53,6 +53,13 @@ export async function capturePageCommand(url: string, options: CapturePageOption
       console.warn(
         chalk.yellow(
           `The page is ${manifest.pageHeight}px tall; the tiles stop at ${manifest.height}px.`,
+        ),
+      );
+    }
+    if (manifest.overflowsWidth) {
+      console.warn(
+        chalk.yellow(
+          `The page is ${manifest.pageWidth}px wide; the tiles show the first ${manifest.width}px.`,
         ),
       );
     }

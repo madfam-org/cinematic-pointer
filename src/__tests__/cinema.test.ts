@@ -2,7 +2,7 @@ import { cueSource, scoreArgs, scoreCues } from '../cinema/score';
 import { direct, pickMontage } from '../cinema/screenplay';
 import { buildStageHtml } from '../cinema/stage';
 import { Landmark, PageCapture } from '../cinema/types';
-import { tileGrid } from '../cinema/tiles';
+import { parsePixels, tileGrid, webUrl } from '../cinema/tiles';
 import { stageFilters, subFrameTime, takeQuality } from '../recorders/stage';
 
 const mark = (kind: Landmark['kind'], y: number, text = kind): Landmark => ({
@@ -267,5 +267,38 @@ describe('page tiles', () => {
     expect(() => tileGrid(0, 100, 256)).toThrow('width');
     expect(() => tileGrid(100, 100.5, 256)).toThrow('height');
     expect(() => tileGrid(100, 100, -1)).toThrow('tileSize');
+  });
+
+  it('numbers rows and columns row by row and still covers the page exactly', () => {
+    const tiles = tileGrid(2500, 2500, 1024);
+    expect(tiles).toHaveLength(9);
+    expect(tiles.map((t) => `${t.row}:${t.col}`).slice(0, 4)).toEqual(['0:0', '0:1', '0:2', '1:0']);
+    expect(tiles[8]).toMatchObject({
+      x: 2048,
+      y: 2048,
+      w: 452,
+      h: 452,
+      file: 'tile-r002-c002.png',
+    });
+    expect(tiles.reduce((sum, t) => sum + t.w * t.h, 0)).toBe(2500 * 2500);
+  });
+});
+
+describe('capture page options', () => {
+  it('takes plain digits within the range', () => {
+    expect(parsePixels('tile', '2048', 256, 8192)).toBe(2048);
+  });
+
+  it('rejects other number spellings and sizes out of range', () => {
+    for (const bad of ['0x800', '1e3', ' 2048', '2048.5', '-1', '1', '60000', '']) {
+      expect(() => parsePixels('tile', bad, 256, 8192)).toThrow('--tile');
+    }
+  });
+
+  it('captures web pages only', () => {
+    expect(webUrl('https://enclii.dev')).toBe('https://enclii.dev/');
+    expect(() => webUrl('file:///etc/hosts')).toThrow('Only http and https');
+    expect(() => webUrl('chrome://settings')).toThrow('Only http and https');
+    expect(() => webUrl('enclii.dev')).toThrow('not a URL');
   });
 });
