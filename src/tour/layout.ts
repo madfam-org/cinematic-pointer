@@ -104,7 +104,8 @@ export function layoutPanels(inputs: TourInput[], options: TourOptions = {}): Pa
     if (!(input.width > 0) || !(input.height > 0)) {
       throw new Error(`${input.slug}: a capture needs a size`);
     }
-    const row = input.layer ?? 'other';
+    // Anything that is not one of the four layers still gets a place, in its own row.
+    const row = input.layer && LAYER_ORDER.includes(input.layer) ? input.layer : 'other';
     byRow.set(row, [...(byRow.get(row) ?? []), input]);
   }
 

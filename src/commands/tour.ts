@@ -46,18 +46,32 @@ export async function loadTourInputs(
   for (const product of products) {
     const dir = path.join(capturesDir, product.slug);
     let manifest: PageTilesManifest;
+    let text: string;
     try {
-      manifest = JSON.parse(await readFile(path.join(dir, 'manifest.json'), 'utf8'));
+      text = await readFile(path.join(dir, 'manifest.json'), 'utf8');
     } catch {
       missing.push(product.slug);
       continue;
     }
+    // A capture that is there but unreadable is an error, not a product without one.
+    try {
+      manifest = JSON.parse(text);
+    } catch {
+      throw new Error(`${product.slug}: manifest.json is not valid JSON`);
+    }
     if (manifest.schema !== PAGE_TILES_SCHEMA) {
       throw new Error(`${product.slug}: not a page capture (${String(manifest.schema)})`);
+    }
+    const positive = (n: unknown) => typeof n === 'number' && Number.isFinite(n) && n > 0;
+    if (!positive(manifest.width) || !positive(manifest.height) || !Array.isArray(manifest.tiles)) {
+      throw new Error(`${product.slug}: the capture has no usable size or tiles`);
     }
     for (const tile of manifest.tiles) {
       if (!/^tile-r\d+-c\d+\.png$/.test(tile.file)) {
         throw new Error(`${product.slug}: the capture names a file that is not a tile`);
+      }
+      if (!positive(tile.w) || !positive(tile.h) || !(tile.x >= 0) || !(tile.y >= 0)) {
+        throw new Error(`${product.slug}: ${tile.file} has no usable size`);
       }
       await stat(path.join(dir, tile.file));
     }
@@ -69,7 +83,12 @@ export async function loadTourInputs(
       height: manifest.height,
       background: manifest.background,
       tiles: manifest.tiles.map((tile) => ({
-        file: path.relative(stageDir, path.join(dir, tile.file)).split(path.sep).join('/'),
+        // A URL relative to the stage document, so each segment is encoded.
+        file: path
+          .relative(stageDir, path.join(dir, tile.file))
+          .split(path.sep)
+          .map(encodeURIComponent)
+          .join('/'),
         x: tile.x,
         y: tile.y,
         w: tile.w,
@@ -86,6 +105,8 @@ export async function tourCommand(options: TourCommandOptions): Promise<void> {
     const size = options.viewport.match(/^(\d{3,4})x(\d{3,4})$/);
     if (!size) throw new Error('--viewport must look like 1280x720');
     const frame = { w: Number(size[1]), h: Number(size[2]) };
+    // The encoder refuses odd sizes, and it would only say so after the whole take was filmed.
+    if (frame.w % 2 !== 0 || frame.h % 2 !== 0) throw new Error('--viewport needs even numbers');
     const limit = options.seconds === undefined ? undefined : Number(options.seconds);
     if (limit !== undefined && !(limit > 0)) throw new Error('--seconds must be a positive number');
 

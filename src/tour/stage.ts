@@ -19,7 +19,21 @@ import * as THREE from 'three';
 
 const tour = window.__tour;
 const canvas = document.getElementById('stage');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+} catch (error) {
+  // Without this the recorder would only see an undefined stage. Say what is missing.
+  const failed = Promise.reject(
+    new Error('The tour stage could not start WebGL here. On a machine without a GPU, pass --software.'),
+  );
+  window.__stage = { duration: tour.duration, info: { renderer: 'none' }, ready: failed, seek: () => failed };
+  throw error;
+}
+let lost = false;
+canvas.addEventListener('webglcontextlost', () => {
+  lost = true;
+});
 renderer.setPixelRatio(1);
 renderer.setSize(window.innerWidth, window.innerHeight, false);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -134,6 +148,8 @@ window.__stage = {
   info,
   ready: buildScene().then(() => draw(0)),
   seek: (t) => {
+    // A lost context draws black. That must fail the take, not be filmed.
+    if (lost) return Promise.reject(new Error('The tour stage lost its WebGL context'));
     draw(t);
     return Promise.resolve();
   },

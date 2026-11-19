@@ -55,6 +55,13 @@ describe('tour layout', () => {
     expect(panels.find((p) => p.slug === 'mystery')!.layer).toBe('other');
   });
 
+  it('a layer it does not know still gets a place', () => {
+    const odd = { ...capture('odd', 'soil'), layer: 'canopy' as never };
+    const panels = layoutPanels([capture('enclii', 'soil'), odd]);
+    expect(panels.find((p) => p.slug === 'odd')!.layer).toBe('other');
+    expect(panels.every((p) => Number.isFinite(p.top.x) && Number.isFinite(p.top.y))).toBe(true);
+  });
+
   it('refuses a capture with no size', () => {
     expect(() => layoutPanels([{ ...capture('x', 'soil'), height: 0 }])).toThrow('needs a size');
   });
