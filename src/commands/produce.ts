@@ -1,4 +1,3 @@
-import { spawn } from 'child_process';
 import { mkdir, stat, writeFile } from 'fs/promises';
 import path from 'path';
 
@@ -27,6 +26,7 @@ import {
   reframeVideo,
   runPipeline,
 } from '../postprod';
+import { grabFrame } from '../postprod/proof';
 import { recordStage, takeQuality } from '../recorders/stage';
 import { recordStepped } from '../recorders/stepped';
 
@@ -61,32 +61,9 @@ export async function preflight(url: string): Promise<{ ok: boolean; status: num
   }
 }
 
-/** One small grayscale frame at `seconds`, as raw bytes. Empty when FFmpeg could not read one. */
-export async function grabFrame(filePath: string, seconds: number): Promise<Buffer> {
-  return new Promise((resolve) => {
-    const proc = spawn('ffmpeg', [
-      '-v',
-      'error',
-      '-ss',
-      seconds.toFixed(2),
-      '-i',
-      filePath,
-      '-frames:v',
-      '1',
-      '-vf',
-      'scale=64:36,format=gray',
-      '-f',
-      'rawvideo',
-      '-',
-    ]);
-    const chunks: Buffer[] = [];
-    proc.stdout.on('data', (chunk: Buffer) => chunks.push(chunk));
-    proc.on('error', () => resolve(Buffer.alloc(0)));
-    proc.on('close', (code) => resolve(code === 0 ? Buffer.concat(chunks) : Buffer.alloc(0)));
-  });
-}
-
 /** Measure a rendered file. Throws when it is absent, empty or too short to be a tour. */
+export { grabFrame };
+
 export async function proveRender(filePath: string, aspect: string): Promise<RenderProof> {
   const { size } = await stat(filePath);
   if (size === 0) throw new Error(`${filePath} is empty`);

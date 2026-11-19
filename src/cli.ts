@@ -7,6 +7,7 @@ import { capturePageCommand } from './commands/capture';
 import { catalogCheck, catalogGenerate } from './commands/catalog';
 import { cutVideo, listTemplates } from './commands/cut';
 import { runDoctor } from './commands/doctor';
+import { exportCommand } from './commands/export';
 import { produceCommand } from './commands/produce';
 import { reframeVideo, listAspects } from './commands/reframe';
 import { runJourney } from './commands/run';
@@ -101,8 +102,25 @@ capture
   .option('--width <px>', 'Width the page is laid out at', '1440')
   .option('--tile <px>', 'Edge of a square tile', '2048')
   .option('--max-height <px>', 'Cut a taller page off here; the manifest says so', '60000')
+  .option(
+    '--allow-hosts <list>',
+    'Comma-separated hosts the page may navigate to (".example.com" = any subdomain); also refuses every non-public address',
+  )
   .option('-b, --browser <browser>', 'Browser to use (chromium, firefox, webkit)', 'chromium')
   .action(capturePageCommand);
+
+program
+  .command('export <video>')
+  .description('One take to a matrix of formats and aspects, each output measured')
+  .option('-o, --out <dir>', 'Output directory', 'exports/export')
+  .option('--formats <list>', 'Comma-separated: mp4, webm, hevc, gif, prores')
+  .option('--aspects <list>', 'Comma-separated: 16:9, 9:16, 1:1, 4:5, 4:3, 21:9')
+  .option(
+    '--platforms <list>',
+    'Comma-separated platform presets, each with its own format and aspects',
+  )
+  .option('-q, --quality <level>', 'draft, standard or high', 'standard')
+  .action(exportCommand);
 
 program
   .command('produce')

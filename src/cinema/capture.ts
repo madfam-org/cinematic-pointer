@@ -12,6 +12,7 @@ import sharp from 'sharp';
 
 import { BrowserType } from '../drivers/playwright';
 
+import { GUARDED_CHROMIUM_ARGS, guardPage, Refusal, startEgressProxy } from './egress';
 import { Landmark, PageCapture } from './types';
 
 export interface CaptureOptions {
@@ -74,9 +75,11 @@ export interface PageFacts {
   status: number | null;
   /** Where the browser ended up after redirects. */
   finalUrl: string;
+  /** Requests the egress guard refused. Empty when no host list was given. */
+  blocked: { url: string; reason: string }[];
 }
 
-type MeasuredFacts = Omit<PageFacts, 'status' | 'finalUrl'>;
+type MeasuredFacts = Omit<PageFacts, 'status' | 'finalUrl' | 'blocked'>;
 
 /** Measure the page as it stands now. */
 export async function measurePage(page: Page): Promise<MeasuredFacts> {
@@ -88,19 +91,63 @@ export async function measurePage(page: Page): Promise<MeasuredFacts> {
  * hands the settled page to `use`. Read-only: it scrolls and looks. It clicks nothing.
  */
 export async function withSettledPage<T>(
-  options: { url: string; width: number; walkHeight: number; browserType?: BrowserType },
-  use: (page: Page, facts: PageFacts) => Promise<T>,
+  options: {
+    url: string;
+    width: number;
+    walkHeight: number;
+    browserType?: BrowserType;
+    /** When given, the browser may navigate only to these hosts and reach only public addresses. */
+    allowHosts?: string[];
+  },
+  /** `hold` throws once the page has broken a rule; call it before each picture. */
+  use: (page: Page, facts: PageFacts, hold: () => void) => Promise<T>,
 ): Promise<T> {
+  const guarded = options.allowHosts !== undefined;
+  if (guarded && (options.browserType ?? 'chromium') !== 'chromium') {
+    throw new Error('A host list is enforced with Chromium only');
+  }
+  const refused: Refusal[] = [];
+  // With a host list, every connection the browser makes goes through the egress proxy.
+  const proxy = guarded ? await startEgressProxy({ refused }) : undefined;
   const launcher = { chromium, firefox, webkit }[options.browserType ?? 'chromium'];
-  const browser = await launcher.launch({ headless: true });
+  const browser = await launcher
+    .launch({
+      headless: true,
+      ...(proxy ? { proxy: { server: proxy.server }, args: GUARDED_CHROMIUM_ARGS } : {}),
+    })
+    .catch(async (error: unknown) => {
+      await proxy?.close();
+      throw error;
+    });
   try {
     const context = await browser.newContext({
       viewport: { width: options.width, height: 900 },
       deviceScaleFactor: 1,
       reducedMotion: 'reduce',
+      serviceWorkers: guarded ? 'block' : 'allow',
     });
+    const guard = options.allowHosts
+      ? await guardPage(context, options.allowHosts, refused)
+      : undefined;
+    /** Fail the capture the moment the page has left the list: it must not be pictured. */
+    const hold = () => {
+      const violation = guard?.violation();
+      if (violation) throw new Error(`The capture was stopped: ${violation}`);
+    };
     const page = await context.newPage();
-    const response = await page.goto(options.url, { waitUntil: 'load', timeout: 60000 });
+    const response = await page
+      .goto(options.url, { waitUntil: 'load', timeout: 60000 })
+      .catch((error: unknown) => {
+        hold();
+        // When the guard refused the page itself, say that instead of a browser error.
+        const host = new URL(options.url).host;
+        const first = refused.find(
+          (entry) => entry.url.startsWith(options.url) || entry.url === `https://${host}:443`,
+        );
+        if (first) throw new Error(`The page was refused: ${first.reason}`);
+        throw error;
+      });
+    hold();
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => undefined);
 
     // The height is re-read as the walk goes: content that appears on scroll makes the page longer,
@@ -111,14 +158,28 @@ export async function withSettledPage<T>(
     }
     await page.evaluate('window.scrollTo(0, 0)');
     await page.waitForTimeout(300);
+    hold();
 
-    return await use(page, {
-      ...(await measurePage(page)),
-      status: response ? response.status() : null,
-      finalUrl: page.url(),
-    });
+    const result = await use(
+      page,
+      {
+        ...(await measurePage(page)),
+        status: response ? response.status() : null,
+        finalUrl: page.url(),
+        blocked: refused,
+      },
+      hold,
+    );
+    // Checked once more after the pictures: a page that left the list while it was being
+    // pictured fails here, and the caller discards what was written.
+    hold();
+    return result;
   } finally {
-    await browser.close();
+    try {
+      await browser.close();
+    } finally {
+      await proxy?.close();
+    }
   }
 }
 

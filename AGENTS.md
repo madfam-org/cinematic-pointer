@@ -77,6 +77,34 @@ commit a capture (`captures/` is ignored).
 npx tsx src/cli.ts capture page https://enclii.dev/ --out captures/enclii
 ```
 
+`--allow-hosts enclii.dev,.madfam.io` turns on the egress guard (`src/cinema/egress.ts`), for captures run
+on our own infrastructure. Chromium only. The browser is started behind a forwarding proxy inside this
+process, so every connection it makes (a redirect, a frame, a popup, a preconnect) is checked the same
+way: https on port 443 only, no IP literal, no local name, and no name that resolves to an address
+that is not public. The proxy connects to the address it checked, so a name cannot answer one thing to
+the check and another to the connection. On top of that the page itself must stay on a listed host (an
+entry is exact; a leading dot means any subdomain): a capture whose page leaves the list, for example
+through a redirect, is failed and its pictures are deleted. Other public hosts stay reachable as
+sub-resources. WebSockets are closed, and WebRTC, shared workers and service-worker registration are removed from the page. The
+manifest records the list and the first 200 refusals. The network policy around the process remains
+the outer stop.
+
+**Export.** `export <video>` writes one take to a matrix of formats (`mp4`, `webm`, `hevc`, `gif`,
+`prores`) and aspects (`16:9`, `9:16`, `1:1`, `4:5`, `4:3`, `21:9`), plus any `--platforms` presets, and
+`export.json` (schema `cinematic-pointer/export@1`). Each output is measured before it is listed: size
+in bytes, length against the take, the dimensions of its aspect, its codec, sound when the take has
+sound, and two frames that differ. A file that fails a measurement is deleted and listed under `failed`
+with the reason. The manifest also says whether this FFmpeg build can burn captions. Exit 0 when every
+target passed, 1 when any failed, 2 when the export could not run at all. A platform preset contributes
+its format and aspects only: its own quality and its size and length limits are not applied or checked.
+Unknown formats, aspects and
+platforms are errors, never a default. Outputs are 1080-class (a 16:9 export is 1920x1080), so a
+smaller take is scaled up, and other aspects are a centre crop.
+
+```bash
+npx tsx src/cli.ts export take.mp4 --formats mp4,webm --aspects 16:9,9:16 --out exports/take
+```
+
 **Recorders.** `produce --recorder` picks how a trailer is filmed:
 
 | Recorder            | What it makes                                                                                                                                                                                                                     | Notes                                                                                                                                                                                                                                                                                                                                                       |
