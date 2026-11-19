@@ -171,23 +171,10 @@ function bounds(panels: Panel[]): { min: Vec3; max: Vec3 } {
   };
 }
 
-/** Catmull-Rom through four values, at `u` between the middle two. */
-function spline(p0: number, p1: number, p2: number, p3: number, u: number): number {
-  const u2 = u * u;
-  const u3 = u2 * u;
-  return (
-    0.5 *
-    (2 * p1 +
-      (-p0 + p2) * u +
-      (2 * p0 - 5 * p1 + 4 * p2 - p3) * u2 +
-      (-p0 + 3 * p1 - 3 * p2 + p3) * u3)
-  );
-}
-
 const lerp = (a: number, b: number, u: number) => a + (b - a) * u;
 const ease = (u: number) => u * u * (3 - 2 * u);
 
-/** The camera at time `t`, on a smooth curve through the keys. Exported for tests. */
+/** The camera at time `t`, between the keys either side of it. Exported for tests. */
 export function cameraAt(keys: Key[], t: number): CameraSample {
   if (keys.length === 0) throw new Error('A camera path needs keys');
   if (t <= keys[0].t) return { position: keys[0].position, target: keys[0].target };
@@ -195,26 +182,18 @@ export function cameraAt(keys: Key[], t: number): CameraSample {
   if (t >= last.t) return { position: last.position, target: last.target };
   let i = 0;
   while (keys[i + 1].t < t) i++;
-  const k0 = keys[Math.max(0, i - 1)];
-  const k1 = keys[i];
-  const k2 = keys[i + 1];
-  const k3 = keys[Math.min(keys.length - 1, i + 2)];
-  const u = (t - k1.t) / (k2.t - k1.t);
-  const curve = (pick: (k: Key) => number) => spline(pick(k0), pick(k1), pick(k2), pick(k3), u);
-  return {
-    // The position follows a curve, so the flight has no corners.
-    position: {
-      x: curve((k) => k.position.x),
-      y: curve((k) => k.position.y),
-      z: curve((k) => k.position.z),
-    },
-    // The target moves in straight eased steps: a curve here would swing the view past its mark.
-    target: {
-      x: lerp(k1.target.x, k2.target.x, ease(u)),
-      y: lerp(k1.target.y, k2.target.y, ease(u)),
-      z: lerp(k1.target.z, k2.target.z, ease(u)),
-    },
-  };
+  const from = keys[i];
+  const to = keys[i + 1];
+  // Eased straight moves between keys. A curve through the keys reads better on paper, but it
+  // overshoots: on the way in from the wide shot it carried the camera past its mark and into
+  // the page. An eased move can never leave the span between its two keys.
+  const u = ease((t - from.t) / (to.t - from.t));
+  const mix = (a: Vec3, b: Vec3): Vec3 => ({
+    x: lerp(a.x, b.x, u),
+    y: lerp(a.y, b.y, u),
+    z: lerp(a.z, b.z, u),
+  });
+  return { position: mix(from.position, to.position), target: mix(from.target, to.target) };
 }
 
 /** Lay out the panels and fly the camera past every one of them. */

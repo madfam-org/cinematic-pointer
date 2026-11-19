@@ -113,6 +113,16 @@ describe('tour camera', () => {
     expect(largest).toBeLessThan(1.5);
   });
 
+  it('never goes closer to a page than its reading distance, or behind it', () => {
+    // A curve through the keys once overshot on the way in and put the camera inside the page.
+    const reading = Math.min(...tour.samples.map((s) => s.position.z));
+    const atPanels = tour.shots
+      .filter((s) => s.kind === 'descend')
+      .map((s) => tour.samples[Math.round(s.start * tour.sampleRate)].position.z);
+    expect(reading).toBeGreaterThan(0);
+    expect(reading).toBeGreaterThanOrEqual(Math.min(...atPanels) * 0.95);
+  });
+
   it('the same inputs in any order give the same tour', () => {
     const again = buildTour([...ESTATE].reverse(), { frameAspect: 16 / 9 });
     expect(JSON.stringify(again)).toBe(JSON.stringify(tour));
