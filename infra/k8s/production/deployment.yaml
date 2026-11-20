@@ -51,7 +51,7 @@ spec:
         - name: ghcr-credentials
       containers:
         - name: landing
-          image: ghcr.io/madfam-org/cinematic-pointer-landingatest
+          image: ghcr.io/madfam-org/cinematic-pointer-landing:latest
           securityContext:
             privileged: false
             allowPrivilegeEscalation: false

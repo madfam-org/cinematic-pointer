@@ -90,7 +90,7 @@ export function createApp(config, site) {
 
   /**
    * @param {string} method @param {string} host @param {string} path
-   * @param {{ ifNoneMatch?: string, range?: string }} conditions
+   * @param {{ ifNoneMatch?: string, range?: string, ifRange?: string }} conditions
    * @returns {Answer}
    */
   function route(method, host, path, conditions) {
@@ -162,7 +162,10 @@ export function createApp(config, site) {
       }
       if (found.type === 'video/mp4') {
         const size = found.body.length;
-        const range = byteRange(conditions.range, size);
+        // A range asked against an older copy of the clip (If-Range names another validator) gets
+        // the whole new one, so a resumed download never splices two versions.
+        const stale = conditions.ifRange !== undefined && conditions.ifRange.trim() !== found.etag;
+        const range = stale ? null : byteRange(conditions.range, size);
         if (range === false) {
           return {
             route: name,
@@ -223,6 +226,7 @@ export function createApp(config, site) {
           : route(method, host, path, {
               ifNoneMatch: req.headers['if-none-match'],
               range: req.headers.range,
+              ifRange: /** @type {string | undefined} */ (req.headers['if-range']),
             });
     } catch (error) {
       console.error(error); // never leak a trace to the client
@@ -255,7 +259,17 @@ export async function start(config = configFromEnv()) {
   const main = createServer(
     config.production
       ? createApp(config, site)
-      : (req, res) => createApp(config, buildSite())(req, res),
+      : (req, res) => {
+          try {
+            createApp(config, buildSite())(req, res);
+          } catch (error) {
+            // A half-saved file must not stop the preview.
+            console.error(error);
+            res
+              .writeHead(500, { 'Content-Type': TEXT })
+              .end('the site did not build; see the log\n');
+          }
+        },
   );
   const side = createServer(metricsApp);
   main.keepAliveTimeout = 75_000;

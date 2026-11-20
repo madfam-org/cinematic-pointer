@@ -19,7 +19,8 @@
     if (b) b.toggleAttribute('hidden', state);
   };
 
-  // Copy controls.
+  // Copy controls. The confirmation is also announced through the page's status region.
+  const status = document.querySelector('[data-status]');
   for (const button of document.querySelectorAll('[data-copy]')) {
     const source = document.getElementById(button.getAttribute('data-copy') ?? '');
     if (!source || !navigator.clipboard) {
@@ -35,10 +36,12 @@
       }
       button.classList.add('is-done');
       show(button, 'data-done', 'data-idle', true);
+      if (status) status.textContent = status.getAttribute('data-copied');
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         button.classList.remove('is-done');
         show(button, 'data-done', 'data-idle', false);
+        if (status) status.textContent = '';
       }, 1800);
     });
   }
@@ -52,13 +55,11 @@
     film.removeAttribute('controls');
     reel.removeAttribute('hidden');
     const sync = () => {
-      if (play) {
-        play.setAttribute('aria-pressed', String(!film.paused));
-        show(play, 'data-on', 'data-off', !film.paused);
-      }
+      // The label names the action the button will take; that is the only state it carries.
+      if (play) show(play, 'data-on', 'data-off', !film.paused);
       if (sound) {
-        sound.setAttribute('aria-pressed', String(!film.muted));
         show(sound, 'data-on', 'data-off', !film.muted);
+        sound.classList.toggle('is-done', !film.muted);
       }
     };
     play?.addEventListener('click', () =>
@@ -102,7 +103,6 @@
         video.pause();
         video.remove();
         card.classList.remove('is-playing');
-        button.setAttribute('aria-pressed', 'false');
         if (showing && showing.video === video) showing = null;
       };
       video.addEventListener('timeupdate', () => {
@@ -120,7 +120,6 @@
       );
       still.insertBefore(video, button);
       card.classList.add('is-playing');
-      button.setAttribute('aria-pressed', 'true');
       showing = { card, video, stop };
     });
   }

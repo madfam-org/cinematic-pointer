@@ -18,6 +18,13 @@ name: Landing
 # DISPATCH ONLY: a merge never builds or deploys by itself (docs/DEPLOYMENT.md).
 on:
   workflow_dispatch:
+    inputs:
+      # Named so the reusable workflow builds the service on every dispatch, whatever main's last
+      # commit touched; without it a dispatch could build nothing and still end green.
+      services:
+        description: Comma-separated services to build
+        required: false
+        default: cinematic-pointer-landing
 
 concurrency:
   group: landing-production-kustomization

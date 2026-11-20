@@ -122,7 +122,12 @@ test('the copy states no price and the real count of filmable products', () => {
   for (const page of Object.values(site.pages)) {
     const text = page.body.toString().replace(/<[^>]+>/g, ' ');
     assert.doesNotMatch(text, /[$€]\s?\d|\d\s?(?:USD|MXN|EUR)\b/);
-    assert.ok(text.includes(` ${catalog.products.length} `));
+    assert.match(
+      text,
+      new RegExp(
+        `(?:lista hoy|lists) ${catalog.products.length} (?:productos filmables|filmable products)`,
+      ),
+    );
   }
 });
 
@@ -138,6 +143,13 @@ test('the clip answers byte ranges', async () => {
   assert.equal(part.body.length, 100);
   assert.deepEqual(part.body, whole.body.subarray(0, 100));
   const tail = await get(path, { Range: 'bytes=-10' });
+  assert.equal(tail.status, 206);
+  assert.equal(tail.headers['content-range'], `bytes ${size - 10}-${size - 1}/${size}`);
+  const stale = await get(path, { Range: 'bytes=0-99', 'If-Range': '"another"' });
+  assert.equal(stale.status, 200);
+  assert.equal(stale.body.length, size);
+  const fresh = await get(path, { Range: 'bytes=0-99', 'If-Range': String(whole.headers.etag) });
+  assert.equal(fresh.status, 206);
   assert.deepEqual(tail.body, whole.body.subarray(size - 10));
   assert.equal((await get(path, { Range: `bytes=${size}-` })).status, 416);
   assert.equal((await get(path, { 'If-None-Match': String(whole.headers.etag) })).status, 304);
@@ -199,6 +211,12 @@ test('the deployment files agree with each other', () => {
     assert.ok(deployment.includes(needle), needle);
   }
   assert.doesNotMatch(deployment + kustomization, /secretKeyRef|kind: Secret|ExternalSecret/);
+  assert.match(
+    deployment,
+    new RegExp(`^\\s+image: ghcr\\.io/madfam-org/${name}:latest$`, 'm'),
+    'the image name the digest pin rewrites',
+  );
+  assert.match(workflow, new RegExp(`default: ${name}\\n`), 'a dispatch always builds the service');
   assert.match(
     kustomization,
     new RegExp(`digest: sha256:[0-9a-f]{64}\\n\\s+name: ghcr.io/madfam-org/${name}`),
