@@ -191,7 +191,7 @@ export function direct(capture: PageCapture, options: DirectorOptions): Screenpl
     });
   });
 
-  // 4. Close: the last call to action, or the foot of the page, straight on.
+  // 4. Close: the primary call to action, or the foot of the page, straight on.
   const action = pickAction(capture);
   const last = action ? centre(action) : null;
   if (action) subjects.close = box('action', action);

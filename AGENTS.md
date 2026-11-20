@@ -167,7 +167,7 @@ npx tsx src/cli.ts tour --only enclii --draft --viewport 1280x720 --out exports/
 | `realtime`          | The live page with the cursor overlay and the FFmpeg edit                                                                                                                                                                                                                                  | Depends on the machine keeping up in real time                                                                                                                                                                                                                                                                                                              |
 
 **The pointer.** A cinematic take has a pointer in it by default (`src/pointer/`). It lives in the page's
-3D space, enters each shot, reads the headline, visits each section, and presses the call to action in
+3D space, enters each shot, reads the headline (a persona that does not read rests under it), visits each section, and presses the call to action in
 the closing shot; it stays off the title and end cards. A persona decides its manner and its outfits:
 `--persona guide|operator|analyst|explorer|maker` or a validated `.json` file; `--no-pointer` films
 without it. The eight outfits are drawn in this repository (never copied from a stock icon set). The
