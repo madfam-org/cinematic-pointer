@@ -12,6 +12,6 @@ resources:
 - poddisruptionbudget.yaml
 - network-policy.yaml
 images:
-- digest: sha256:f059b72127a0b8728c27cf68a1179f661faf55a6c47548f8591e12e786e51407
+- digest: sha256:4b61279978fc4937bbc1df3799f135e10d735ed864f2041a90ddd1496b327fbb
   name: ghcr.io/madfam-org/cinematic-pointer-landing
   newName: ghcr.io/madfam-org/cinematic-pointer-landing
