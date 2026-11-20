@@ -76,6 +76,27 @@ export function pickMontage(capture: PageCapture, frameH: number, scale: number,
   return spread;
 }
 
+/** Weights closer than this are a tie. */
+const TIE = 0.05;
+
+/**
+ * The call to action the trailer closes on: the primary one of the page's last group. The last
+ * group is the calls to action whose vertical span overlaps the lowest one's. Among them the one
+ * that stands out most wins; any within the tie margin of it count as level, and the leftmost of
+ * those wins (a page puts its main action first). If any member was captured without a weight the
+ * weights are not comparable, and the leftmost wins outright.
+ */
+export function pickAction(capture: PageCapture): Landmark | null {
+  const actions = capture.landmarks.filter((m) => m.kind === 'cta');
+  if (actions.length === 0) return null;
+  const low = actions.reduce((a, b) => (centre(b).y > centre(a).y ? b : a));
+  const row = actions.filter((m) => m.y < low.y + low.h && low.y < m.y + m.h);
+  const weighed = row.every((m) => typeof m.weight === 'number' && Number.isFinite(m.weight));
+  const top = weighed ? Math.max(...row.map((m) => m.weight as number)) : 0;
+  const level = weighed ? row.filter((m) => (m.weight as number) >= top - TIE - 1e-9) : row;
+  return level.reduce((a, b) => (b.x < a.x ? b : a));
+}
+
 export function direct(capture: PageCapture, options: DirectorOptions): Screenplay {
   const { frame } = options;
   // At scale `fit` the page is exactly as wide as the frame.
@@ -171,9 +192,9 @@ export function direct(capture: PageCapture, options: DirectorOptions): Screenpl
   });
 
   // 4. Close: the last call to action, or the foot of the page, straight on.
-  const actions = capture.landmarks.filter((m) => m.kind === 'cta');
-  const last = actions.length > 0 ? centre(actions[actions.length - 1]) : null;
-  if (actions.length > 0) subjects.close = box('action', actions[actions.length - 1]);
+  const action = pickAction(capture);
+  const last = action ? centre(action) : null;
+  if (action) subjects.close = box('action', action);
   const closeAt = last ?? { x: capture.width / 2, y: capture.height - viewH * 0.5 };
   push({
     name: 'close',

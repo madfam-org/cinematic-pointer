@@ -17,6 +17,11 @@ export interface Landmark {
   y: number;
   w: number;
   h: number;
+  /**
+   * For a call to action: how much it stands out from what is behind it, 0 to 1. A solid button in
+   * the brand colour is high; a faint outline button is near zero. Absent in older captures.
+   */
+  weight?: number;
 }
 
 export interface PageCapture {

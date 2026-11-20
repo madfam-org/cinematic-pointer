@@ -26,10 +26,10 @@ export interface CaptureOptions {
 }
 
 /** Runs in the page. Returns visible headings and prominent links or buttons, in page pixels. */
-const LANDMARK_SCRIPT = `(() => {
+export const LANDMARK_SCRIPT = `(() => {
   const out = [];
   const seen = new Set();
-  const add = (kind, el) => {
+  const add = (kind, el, weight) => {
     const r = el.getBoundingClientRect();
     const style = getComputedStyle(el);
     if (r.width < 24 || r.height < 12) return;
@@ -40,15 +40,76 @@ const LANDMARK_SCRIPT = `(() => {
     const key = kind + ':' + x + ':' + y;
     if (seen.has(key)) return;
     seen.add(key);
-    out.push({ kind, text, x, y, w: Math.round(r.width), h: Math.round(r.height) });
+    const mark = { kind, text, x, y, w: Math.round(r.width), h: Math.round(r.height) };
+    if (weight !== undefined) mark.weight = weight;
+    out.push(mark);
+  };
+  // Any CSS colour as [r, g, b, a] in sRGB bytes, or null when it paints nothing. The browser does
+  // the parsing: a 1x1 canvas takes any notation the page can use (rgb, hex, oklch, color-mix
+  // results) and returns the bytes it paints. A string it cannot parse paints nothing.
+  const pad = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+  const parse = (c) => {
+    if (!pad || !c || c === 'transparent' || c === 'none') return null;
+    pad.clearRect(0, 0, 1, 1);
+    pad.fillStyle = 'rgba(0, 0, 0, 0)';
+    pad.fillStyle = c;
+    pad.fillRect(0, 0, 1, 1);
+    const d = pad.getImageData(0, 0, 1, 1).data;
+    return d[3] > 0 ? [d[0], d[1], d[2], d[3] / 255] : null;
+  };
+  // The first colour stop of a gradient, or null. Only a gradient that is the element's only
+  // background layer and covers the whole box counts: an underline drawn with a sized gradient, or
+  // a tint laid over a photograph, is not a fill.
+  const STOP = /(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\\([^()]*\\)|#[0-9a-fA-F]{3,8}\\b|\\b[a-z]+\\b/g;
+  const gradientFill = (style) => {
+    const image = style.backgroundImage || '';
+    if (image.indexOf('url(') >= 0 || image.split('gradient(').length !== 2) return null;
+    const size = style.backgroundSize || 'auto';
+    if (!/^(auto|auto auto|cover|100% 100%|100%)$/.test(size.trim())) return null;
+    const body = image.slice(image.indexOf('gradient(') + 'gradient('.length);
+    for (const token of body.match(STOP) || []) {
+      if (/^(to|at|in|deg|turn|rad|circle|ellipse|closest|farthest|side|corner|left|right|top|bottom|center|from|srgb|oklab|oklch|hsl|lab|lch|longer|shorter|increasing|decreasing|hue)$/.test(token)) continue;
+      const colour = parse(token);
+      if (colour) return colour;
+      if (token.indexOf('(') >= 0 || token[0] === '#') return null;
+    }
+    return null;
+  };
+  // What an element is filled with, its own opacity included.
+  const fill = (el) => {
+    const style = getComputedStyle(el);
+    const c = gradientFill(style) || parse(style.backgroundColor);
+    if (!c) return null;
+    const opacity = Number(style.opacity);
+    return [c[0], c[1], c[2], c[3] * (Number.isFinite(opacity) ? opacity : 1)];
+  };
+  // How much a control stands out: how solid its fill is, times how far that fill is from what is
+  // behind it. A solid brand-coloured button scores high; a faint outline button scores near zero.
+  const prominence = (el, own) => {
+    let behind = [255, 255, 255, 1];
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const c = fill(p);
+      if (c && c[3] >= 0.5) { behind = c; break; }
+    }
+    const d = Math.hypot(own[0] - behind[0], own[1] - behind[1], own[2] - behind[2]) / 441.673;
+    const w = Math.round(own[3] * d * 1000) / 1000;
+    return Number.isFinite(w) ? Math.min(1, Math.max(0, w)) : undefined;
+  };
+  // A bar pinned to the screen (a header, a cookie banner) is not the page's call to action.
+  const pinned = (el) => {
+    for (let p = el; p && p !== document.body; p = p.parentElement) {
+      const position = getComputedStyle(p).position;
+      if (position === 'fixed' || position === 'sticky') return true;
+    }
+    return false;
   };
   document.querySelectorAll('h1').forEach((el) => add('h1', el));
   document.querySelectorAll('h2').forEach((el) => add('h2', el));
   document.querySelectorAll('a, button').forEach((el) => {
     const r = el.getBoundingClientRect();
-    const bg = getComputedStyle(el).backgroundColor;
-    const filled = bg && bg !== 'transparent' && !/rgba\\(.*,\\s*0\\)$/.test(bg);
-    if (filled && r.height >= 36 && r.width >= 110 && r.width <= 420) add('cta', el);
+    if (r.height < 36 || r.width < 110 || r.width > 420) return;
+    const own = fill(el);
+    if (own && !pinned(el)) add('cta', el, prominence(el, own));
   });
   return out;
 })()`;
