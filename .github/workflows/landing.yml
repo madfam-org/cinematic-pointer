@@ -1,0 +1,64 @@
+name: Landing
+
+# The landing at trailer.madfam.io (one service: cinematic-pointer-landing). NOT the command-line
+# image: that is image.yml.
+#
+# Caller for Enclii's shared reusable workflow: buildx, push to GHCR as :${SHA}, keyless cosign sign
+# and verify, then the kustomize digest pin committed to main, which the GitOps sync picks up.
+#
+# Image name is the contract: image_prefix ghcr.io/madfam-org plus the service name gives
+# ghcr.io/madfam-org/cinematic-pointer-landing, the exact `images:` entry in
+# infra/k8s/production/kustomization.yaml.
+#
+# The ref is a full commit SHA on enclii `main`. Bumping it is a deliberate change: confirm the SHA is
+# on main, read the diff of .github/workflows/build-publish.yml between the two SHAs, re-check the
+# inputs and named secrets below against its `on.workflow_call`, then change the SHA and its comment
+# together.
+#
+# DISPATCH ONLY: a merge never builds or deploys by itself (docs/DEPLOYMENT.md).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: landing-production-kustomization
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: Preflight (landing tests)
+    # Releases are cut from main only: a dispatch from any other ref builds nothing.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ${{ vars.ARC_BOOTSTRAP_COMPLETE == 'true' && 'madfam-runners-blue' || 'ubuntu-latest' }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Landing server and deployment contract
+        run: node --test site/server/test/*.test.mjs
+
+  build-publish:
+    needs: preflight
+    uses: madfam-org/enclii/.github/workflows/build-publish.yml@5713e0b381651f9df1ec055f43a833053eaf0f10 # enclii main 2026-11-16
+    with:
+      image_prefix: ghcr.io/madfam-org
+      kustomization_path: infra/k8s/production
+      # `paths` mirror the Dockerfile's COPY sources (site/server/test keeps them in lockstep).
+      services: |
+        [
+          {"name":"cinematic-pointer-landing", "dockerfile":"site/Dockerfile", "paths":"site/Dockerfile site/Dockerfile.dockerignore site/server site/web catalog/products.json", "build_args":"TRAILER_REVISION=${{ github.sha }}", "implicit_dockerfile_dir": false}
+        ]
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      ENCLII_CALLBACK_TOKEN: ${{ secrets.ENCLII_CALLBACK_TOKEN }}
+    permissions:
+      contents: write
+      packages: write
+      id-token: write

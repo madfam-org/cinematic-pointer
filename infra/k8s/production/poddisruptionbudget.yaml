@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cinematic-pointer-landing
+  labels:
+    app: cinematic-pointer-landing
+    app.kubernetes.io/name: cinematic-pointer-landing
+    app.kubernetes.io/part-of: madfam-platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cinematic-pointer-landing

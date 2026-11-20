@@ -1,0 +1,16 @@
+# The Service the tunnel route dials (the enclii.yaml domain pins port 80). /metrics is not on it.
+apiVersion: v1
+kind: Service
+metadata:
+  name: cinematic-pointer-landing
+  labels:
+    app: cinematic-pointer-landing
+    app.kubernetes.io/name: cinematic-pointer-landing
+    app.kubernetes.io/part-of: madfam-platform
+spec:
+  selector:
+    app.kubernetes.io/name: cinematic-pointer-landing
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

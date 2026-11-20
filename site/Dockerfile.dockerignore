@@ -1,0 +1,8 @@
+# Context filter for site/Dockerfile only (BuildKit reads <Dockerfile>.dockerignore first).
+# Everything is excluded, then exactly what the image copies is let back in.
+*
+!site/server
+!site/web
+!catalog/products.json
+site/server/test
+**/.DS_Store

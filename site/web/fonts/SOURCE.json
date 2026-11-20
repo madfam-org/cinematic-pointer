@@ -1,0 +1,18 @@
+{
+  "what": "Self-hosted typefaces, each under the SIL Open Font License 1.1 (the OFL-*.txt files beside them). Fetched from Google Fonts on 2026-11-19 as WOFF2 subsets; nothing is loaded from another origin.",
+  "families": {
+    "Bowlby One": { "files": ["bowlby-one-400-latin.woff2"], "licence": "OFL-bowlbyone.txt" },
+    "Archivo": {
+      "files": ["archivo-latin.woff2", "archivo-latin-ext.woff2"],
+      "licence": "OFL-archivo.txt"
+    },
+    "Archivo Narrow": {
+      "files": ["archivo-narrow-latin.woff2", "archivo-narrow-latin-ext.woff2"],
+      "licence": "OFL-archivonarrow.txt"
+    },
+    "Yesteryear": {
+      "files": ["yesteryear-400-latin.woff2", "yesteryear-400-latin-ext.woff2"],
+      "licence": "OFL-yesteryear.txt"
+    }
+  }
+}

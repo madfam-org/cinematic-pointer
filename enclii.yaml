@@ -1,0 +1,89 @@
+# Enclii manifest: the Cinematic Pointer landing.
+#
+# One project, ONE service, one image: a stateless landing at trailer.madfam.io (owner direction,
+# 2026-11-19). The domain pins `port: 80` because the tunnel dials the Kubernetes Service (80), not the
+# container (8000); metadata.name IS the Kubernetes Service name.
+#
+# Host names follow the ecosystem rule: one level under madfam.io, hyphenated for any further surface
+# (trailer-api.madfam.io, trailer-admin.madfam.io). Only the landing exists; a host is declared here
+# only when a runtime exists for it, and each new name needs the owner's word.
+#
+# The command-line tool is not deployed by this file: it is an image consumers pin by digest.
+#
+# Stateless: no database, no bucket, no Janua client, no secrets, no analytics. Builds:
+# .github/workflows/landing.yml (Enclii's reusable build-publish, pinned by full SHA), dispatch-only.
+# autoDeploy stays false: a merge never deploys by itself (docs/DEPLOYMENT.md).
+apiVersion: enclii.dev/v1
+kind: Project
+metadata:
+  name: cinematic-pointer
+spec:
+  promotion:
+    pattern: manual
+    min_soak_minutes: 15
+    require_smoke_pass: true
+---
+apiVersion: enclii.dev/v1
+kind: Service
+metadata:
+  name: cinematic-pointer-landing
+  project: cinematic-pointer
+  description: Cinematic Pointer; the stateless landing, in Spanish and English
+spec:
+  domains:
+    - name: trailer.madfam.io
+      environment: production
+      port: 80
+
+  # Off until the owner says to index: a status-page entry is a public mention of the host. The entry
+  # is written out so that turning it on is one word (docs/DEPLOYMENT.md).
+  status:
+    enabled: false
+    entries:
+      - name: cinematic-pointer-landing
+        url: https://trailer.madfam.io/health
+        href: https://trailer.madfam.io
+        group: cinematic-pointer
+        family: MADFAM Platform
+        description: Landing (no sign-in, not indexed)
+        assertContains: '"status":"ok"'
+        assertNotContains: 'localhost:'
+
+  build:
+    type: dockerfile
+    dockerfile: site/Dockerfile
+    context: .
+    source:
+      git:
+        repository: https://github.com/madfam-org/cinematic-pointer
+        branch: main
+        autoDeploy: false
+
+  runtime:
+    port: 8000
+    replicas: 2
+    resources:
+      requests:
+        cpu: '25m'
+        memory: '64Mi'
+      limits:
+        cpu: '250m'
+        memory: '192Mi'
+    healthCheck: /health
+    healthCheckTimeoutSeconds: 3
+
+  slo:
+    availability: 99.5
+    latencyP99Ms: 1000
+
+  network:
+    services:
+      - name: cinematic-pointer-landing
+        label: app.kubernetes.io/name
+        port: 8000
+        ingress: [cloudflare-tunnel]
+        egress: [dns]
+
+  dependencies:
+    - platform: enclii
+      reason: deploy, domain (trailer.madfam.io), status
