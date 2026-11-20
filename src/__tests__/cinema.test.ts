@@ -1,5 +1,7 @@
 import { cueSource, scoreArgs, scoreCues } from '../cinema/score';
 import { direct, pickAction, pickMontage } from '../cinema/screenplay';
+import { pointerAt } from '../pointer/motion';
+import { PERSONAS } from '../pointer/persona';
 import { buildStageHtml } from '../cinema/stage';
 import { Landmark, PageCapture } from '../cinema/types';
 import { parsePixels, tileGrid, webUrl } from '../cinema/tiles';
@@ -346,5 +348,38 @@ describe('the call to action a trailer closes on', () => {
     const page = capture([button(100, 520, 1, 'hero'), button(100, 5600, 0.3, 'foot')]);
     expect(pickAction(page)?.text).toBe('foot');
     expect(pickAction(capture([mark('h1', 300)]))).toBeNull();
+  });
+
+  it('does not depend on the order the row arrives in', () => {
+    const row = [
+      button(100, 5600, 0.5, 'a'),
+      button(340, 5600, 0.54, 'b'),
+      button(580, 5600, 0.58, 'c'),
+    ];
+    const orders = [row, [...row].reverse(), [row[1], row[2], row[0]]];
+    const picks = orders.map((o) => pickAction(capture(o))?.text);
+    expect(new Set(picks).size).toBe(1);
+    // a and c are not level (0.08 apart); b is level with c, and b is left of c.
+    expect(picks[0]).toBe('b');
+  });
+
+  it('keeps bottom-aligned buttons of different heights in one row', () => {
+    const tall = { ...button(100, 5600, 0.9, 'primary'), h: 80 };
+    const short = { ...button(480, 5644, 0.05, 'ghost'), h: 36 };
+    expect(pickAction(capture([short, tall]))?.text).toBe('primary');
+  });
+
+  it('falls back to the leftmost when any button in the row has no weight', () => {
+    const page = capture([button(100, 5600, undefined, 'brand'), button(480, 5600, 0.1, 'ghost')]);
+    expect(pickAction(page)?.text).toBe('brand');
+  });
+
+  it('closes the camera and the pointer on the same button', () => {
+    const page = capture([button(100, 5600, 0.05, 'ghost'), button(480, 5600, 0.8, 'primary')]);
+    const play = direct(page, { frame, name: 'Example', persona: PERSONAS.guide });
+    const close = play.shots.find((s) => s.name === 'close')!;
+    expect(close.to.cx).toBe(630);
+    const press = pointerAt(play.pointer!, play.pointer!.presses[0]);
+    expect(press).toMatchObject({ x: 630, y: 5640, outfit: 'press' });
   });
 });
