@@ -76,6 +76,22 @@ export function pickMontage(capture: PageCapture, frameH: number, scale: number,
   return spread;
 }
 
+/**
+ * The call to action the trailer closes on: the primary one of the page's last group. The last
+ * group is the calls to action that share a row with the lowest one; among them the one that
+ * stands out most wins, and the leftmost wins a tie (a page puts its main action first).
+ */
+export function pickAction(capture: PageCapture): Landmark | null {
+  const actions = capture.landmarks.filter((m) => m.kind === 'cta');
+  if (actions.length === 0) return null;
+  const lowest = actions.reduce((a, b) => (centre(b).y > centre(a).y ? b : a));
+  const row = actions.filter((m) => Math.abs(centre(m).y - centre(lowest).y) <= lowest.h / 2);
+  return row.reduce((best, m) => {
+    const gain = (m.weight ?? 0) - (best.weight ?? 0);
+    return gain > 0.05 || (Math.abs(gain) <= 0.05 && m.x < best.x) ? m : best;
+  });
+}
+
 export function direct(capture: PageCapture, options: DirectorOptions): Screenplay {
   const { frame } = options;
   // At scale `fit` the page is exactly as wide as the frame.
@@ -171,9 +187,9 @@ export function direct(capture: PageCapture, options: DirectorOptions): Screenpl
   });
 
   // 4. Close: the last call to action, or the foot of the page, straight on.
-  const actions = capture.landmarks.filter((m) => m.kind === 'cta');
-  const last = actions.length > 0 ? centre(actions[actions.length - 1]) : null;
-  if (actions.length > 0) subjects.close = box('action', actions[actions.length - 1]);
+  const action = pickAction(capture);
+  const last = action ? centre(action) : null;
+  if (action) subjects.close = box('action', action);
   const closeAt = last ?? { x: capture.width / 2, y: capture.height - viewH * 0.5 };
   push({
     name: 'close',

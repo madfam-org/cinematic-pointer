@@ -1,5 +1,5 @@
 import { cueSource, scoreArgs, scoreCues } from '../cinema/score';
-import { direct, pickMontage } from '../cinema/screenplay';
+import { direct, pickAction, pickMontage } from '../cinema/screenplay';
 import { buildStageHtml } from '../cinema/stage';
 import { Landmark, PageCapture } from '../cinema/types';
 import { parsePixels, tileGrid, webUrl } from '../cinema/tiles';
@@ -300,5 +300,51 @@ describe('capture page options', () => {
     expect(() => webUrl('file:///etc/hosts')).toThrow('Only http and https');
     expect(() => webUrl('chrome://settings')).toThrow('Only http and https');
     expect(() => webUrl('enclii.dev')).toThrow('not a URL');
+  });
+});
+
+describe('the call to action a trailer closes on', () => {
+  const button = (x: number, y: number, weight?: number, text = 'go'): Landmark => ({
+    kind: 'cta',
+    text,
+    x,
+    y,
+    w: 300,
+    h: 80,
+    ...(weight === undefined ? {} : { weight }),
+  });
+
+  it('is the one that stands out in the last row, not the last one in the page', () => {
+    const page = capture([
+      mark('h1', 300),
+      button(100, 520, 0.9, 'hero'),
+      button(100, 5600, 0.8, 'primary'),
+      button(480, 5600, 0.04, 'ghost'),
+    ]);
+    expect(pickAction(page)?.text).toBe('primary');
+    const close = direct(page, { frame, name: 'Example' }).shots.find((s) => s.name === 'close')!;
+    expect(close.to.cx).toBe(250);
+    expect(close.to.cy).toBe(5640);
+  });
+
+  it('holds whichever side the standout button is on', () => {
+    const page = capture([button(100, 5600, 0.04, 'ghost'), button(480, 5600, 0.8, 'primary')]);
+    expect(pickAction(page)?.text).toBe('primary');
+  });
+
+  it('takes the leftmost when the row is a tie or was captured without weights', () => {
+    const even = capture([button(480, 5600, 0.5, 'right'), button(100, 5600, 0.52, 'left')]);
+    expect(pickAction(even)?.text).toBe('left');
+    const old = capture([
+      button(100, 5600, undefined, 'left'),
+      button(480, 5600, undefined, 'right'),
+    ]);
+    expect(pickAction(old)?.text).toBe('left');
+  });
+
+  it('ignores a louder button higher up the page, and a page with none has none', () => {
+    const page = capture([button(100, 520, 1, 'hero'), button(100, 5600, 0.3, 'foot')]);
+    expect(pickAction(page)?.text).toBe('foot');
+    expect(pickAction(capture([mark('h1', 300)]))).toBeNull();
   });
 });

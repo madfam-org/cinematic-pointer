@@ -29,7 +29,7 @@ export interface CaptureOptions {
 const LANDMARK_SCRIPT = `(() => {
   const out = [];
   const seen = new Set();
-  const add = (kind, el) => {
+  const add = (kind, el, weight) => {
     const r = el.getBoundingClientRect();
     const style = getComputedStyle(el);
     if (r.width < 24 || r.height < 12) return;
@@ -40,15 +40,46 @@ const LANDMARK_SCRIPT = `(() => {
     const key = kind + ':' + x + ':' + y;
     if (seen.has(key)) return;
     seen.add(key);
-    out.push({ kind, text, x, y, w: Math.round(r.width), h: Math.round(r.height) });
+    const mark = { kind, text, x, y, w: Math.round(r.width), h: Math.round(r.height) };
+    if (weight !== undefined) mark.weight = weight;
+    out.push(mark);
+  };
+  // A colour as [r, g, b, a], or null when it paints nothing.
+  const parse = (c) => {
+    const m = /rgba?\\(([^)]+)\\)/.exec(c || '');
+    if (!m) return null;
+    const n = m[1].split(/[,\\s\\/]+/).filter(Boolean).map(parseFloat);
+    const a = n.length > 3 ? n[3] : 1;
+    return n.length >= 3 && a > 0 ? [n[0], n[1], n[2], a] : null;
+  };
+  // What an element is filled with: its background colour, or the first stop of its gradient.
+  const fill = (el) => {
+    const style = getComputedStyle(el);
+    const image = style.backgroundImage || '';
+    return (image.indexOf('gradient') >= 0 ? parse(image) : null) || parse(style.backgroundColor);
+  };
+  // How much a control stands out: how solid its fill is, times how far that fill is from what is
+  // behind it. A solid brand-coloured button scores high; a faint outline button scores near zero.
+  const prominence = (el, own) => {
+    let behind = [255, 255, 255, 1];
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const c = fill(p);
+      if (c && c[3] >= 0.5) { behind = c; break; }
+    }
+    const d = Math.hypot(own[0] - behind[0], own[1] - behind[1], own[2] - behind[2]) / 441.673;
+    return Math.round(own[3] * d * 1000) / 1000;
   };
   document.querySelectorAll('h1').forEach((el) => add('h1', el));
   document.querySelectorAll('h2').forEach((el) => add('h2', el));
   document.querySelectorAll('a, button').forEach((el) => {
     const r = el.getBoundingClientRect();
+    const own = fill(el);
+    // A fill in a notation this script cannot read still counts as filled; it only goes unweighed.
     const bg = getComputedStyle(el).backgroundColor;
-    const filled = bg && bg !== 'transparent' && !/rgba\\(.*,\\s*0\\)$/.test(bg);
-    if (filled && r.height >= 36 && r.width >= 110 && r.width <= 420) add('cta', el);
+    const filled = own || (bg && bg !== 'transparent' && !/rgba\\(.*,\\s*0\\)$/.test(bg));
+    if (filled && r.height >= 36 && r.width >= 110 && r.width <= 420) {
+      add('cta', el, own ? prominence(el, own) : undefined);
+    }
   });
   return out;
 })()`;
