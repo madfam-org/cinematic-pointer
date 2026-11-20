@@ -99,7 +99,6 @@
   --card: #f6f1e4;
   --card-ink: #1b100c;
   --card-soft: #54453c;
-  --tack: #c9d1d6;
 
   --display: 'Bowlby One', 'Archivo', sans-serif;
   --text: 'Archivo', system-ui, sans-serif;
@@ -118,10 +117,10 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* The case at night: the fields go deep and the lit cards carry the light. */
-    --hero-field: #101c2e;
-    --hero-text: #e9e6dc;
+    --hero-field: #8a2a14;
+    --hero-text: #f8ebe0;
     --hero-title: #f6f1e4;
-    --hero-register: var(--vermilion);
+    --hero-register: var(--ink);
     --shots-field: #3b2a04;
     --shots-text: #f1e9d2;
     --shots-title: var(--marigold);
@@ -378,6 +377,7 @@ code {
   background: var(--card);
   color: var(--card-ink);
   padding: clamp(0.55rem, 1.1vw, 0.9rem);
+  border: 1.5px solid var(--card-ink);
   box-shadow: var(--lift);
   rotate: var(--tilt, 0deg);
   border-radius: 2px;
@@ -393,14 +393,15 @@ code {
   aspect-ratio: 1;
   translate: -50% 0;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffffff 0 12%, var(--tack) 30%, #7f8a91 100%);
-  box-shadow: 0 3px 4px -1px rgb(20 10 6 / 0.6);
+  background: #b5361a;
+  box-shadow: 1.5px 1.5px 0 var(--marigold);
 }
 .lobby__still {
   position: relative;
   aspect-ratio: 16 / 9;
   background: #05070b;
   overflow: hidden;
+  outline: 2px solid var(--card-ink);
 }
 .lobby__still img,
 .lobby__still video {
@@ -501,8 +502,10 @@ code {
   display: grid;
   gap: 0.7rem;
   justify-items: start;
-  padding: 1.15rem 1.25rem 1.25rem;
-  background: var(--card);
+  padding: 1.15rem 1.5rem 1.25rem;
+  background:
+    radial-gradient(circle at 0 50%, var(--field) 0.55rem, transparent 0.58rem),
+    radial-gradient(circle at 100% 50%, var(--field) 0.55rem, transparent 0.58rem), var(--card);
   color: var(--card-ink);
   border-radius: 2px;
   box-shadow: var(--lift);
@@ -626,24 +629,54 @@ code {
 @media (max-width: 59.99rem) {
   .hero {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'title' 'card' 'copy';
+    grid-template-areas: 'title' 'card' 'ticket' 'lede' 'truth';
+    gap: 1.1rem;
   }
-  .lobby--feature {
-    --tilt: 0.8deg;
-    margin-inline: 0.35rem;
-  }
-  .hero__copy {
-    max-width: none;
+  .band--hero {
+    padding-top: 1.25rem;
   }
   .hero__title {
     font-size: clamp(2.2rem, 10.4vw, 4.6rem);
-  }
-  .star {
-    right: 0.4rem;
-    bottom: -3.4rem;
+    padding-top: 0;
   }
   .hero__copy {
-    margin-top: 2.5rem;
+    display: contents;
+  }
+  .hero__copy .ticket {
+    grid-area: ticket;
+    margin-top: 0.4rem;
+  }
+  .lede {
+    grid-area: lede;
+    margin-top: 0.5rem;
+  }
+  .hero__truth {
+    grid-area: truth;
+  }
+  .lobby--feature {
+    --tilt: 0.8deg;
+    margin: 0.4rem 0.35rem 0;
+  }
+  .lobby--feature .billing {
+    font-size: 0.6875rem;
+    letter-spacing: 0.05em;
+  }
+  .lobby__name {
+    margin-bottom: 0.1rem;
+  }
+  .reel {
+    margin-top: 0.4rem;
+  }
+  .reel .stub {
+    min-height: 2.5rem;
+  }
+  .lobby--feature {
+    z-index: 1;
+  }
+  .star {
+    right: 0.3rem;
+    bottom: -2.7rem;
+    width: 2.9rem;
   }
 }
 
@@ -698,8 +731,7 @@ code {
 }
 .lobby__no {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 0.9rem;
   font: 700 0.8125rem/1.2 var(--narrow) !important;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -803,7 +835,7 @@ code {
   margin-top: 0.4rem;
 }
 .frames__f {
-  --h: 5.25rem;
+  --h: 4.5rem;
   position: relative;
   height: var(--h);
   aspect-ratio: var(--r);

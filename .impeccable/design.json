@@ -1,0 +1,686 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-20T17:14:17.552Z",
+  "title": "Design System: Cinematic Pointer",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(18.7% 0.020 40.8)",
+        "tonalRamp": [
+          "#0f0a08",
+          "#2d2421",
+          "#4e423e",
+          "#71635e",
+          "#958580",
+          "#b9aaa5",
+          "#dbcec9",
+          "#f7ece8"
+        ]
+      },
+      "stock": {
+        "role": "neutral",
+        "displayName": "Stock",
+        "canonical": "oklch(95.8% 0.018 89.4)",
+        "tonalRamp": [
+          "#0d0b07",
+          "#292620",
+          "#48453c",
+          "#6a665b",
+          "#8d897d",
+          "#b2aea3",
+          "#d4d1c7",
+          "#f1eee6"
+        ]
+      },
+      "vermilion": {
+        "role": "primary",
+        "displayName": "Vermilion",
+        "canonical": "oklch(62.5% 0.189 35.3)",
+        "tonalRamp": [
+          "#200000",
+          "#4b0c00",
+          "#7d1d01",
+          "#b52e01",
+          "#e3522d",
+          "#fe8769",
+          "#fec0b0",
+          "#fdeae5"
+        ]
+      },
+      "marigold": {
+        "role": "secondary",
+        "displayName": "Marigold",
+        "canonical": "oklch(81.1% 0.166 85.0)",
+        "tonalRamp": [
+          "#120a00",
+          "#332400",
+          "#584100",
+          "#816005",
+          "#ad8203",
+          "#d9a512",
+          "#f8ca66",
+          "#feedc8"
+        ]
+      },
+      "night": {
+        "role": "tertiary",
+        "displayName": "Night Blue",
+        "canonical": "oklch(32.5% 0.079 253.0)",
+        "tonalRamp": [
+          "#020b1a",
+          "#122740",
+          "#2a4768",
+          "#466890",
+          "#678cb8",
+          "#8eb1db",
+          "#b5d4f9",
+          "#e4f0fe"
+        ]
+      },
+      "green": {
+        "role": "tertiary",
+        "displayName": "Green",
+        "canonical": "oklch(47.8% 0.098 164.9)",
+        "tonalRamp": [
+          "#000f08",
+          "#002f1f",
+          "#00523a",
+          "#227758",
+          "#489c7a",
+          "#76c0a0",
+          "#a2e1c5",
+          "#c8fde4"
+        ]
+      },
+      "tack-red": {
+        "role": "primary",
+        "displayName": "Tack Red",
+        "canonical": "oklch(52.0% 0.168 33.7)",
+        "tonalRamp": [
+          "#200000",
+          "#4b0a00",
+          "#801800",
+          "#af361c",
+          "#db5b3f",
+          "#fd886d",
+          "#fec0b1",
+          "#ffe9e4"
+        ]
+      },
+      "card-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "oklch(40.3% 0.025 52.7)",
+        "tonalRamp": [
+          "#0f0a07",
+          "#2d241f",
+          "#4f423b",
+          "#726359",
+          "#96857b",
+          "#baaaa1",
+          "#dccec5",
+          "#f8ece5"
+        ]
+      },
+      "today-text": {
+        "role": "neutral",
+        "displayName": "Today field text",
+        "canonical": "oklch(95.2% 0.008 121.6)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#262724",
+          "#444642",
+          "#656762",
+          "#888a85",
+          "#adafaa",
+          "#d0d2cd",
+          "#eeefeb"
+        ]
+      },
+      "today-register": {
+        "role": "tertiary",
+        "displayName": "Today register ink",
+        "canonical": "oklch(21.0% 0.047 252.6)",
+        "tonalRamp": [
+          "#050c14",
+          "#1b2736",
+          "#36465a",
+          "#54687f",
+          "#768ba5",
+          "#9bb0c9",
+          "#c1d3e9",
+          "#e4f0fd"
+        ]
+      },
+      "today-rule": {
+        "role": "tertiary",
+        "displayName": "Today hairline",
+        "canonical": "oklch(47.8% 0.082 253.1)",
+        "tonalRamp": [
+          "#020b1b",
+          "#112741",
+          "#294769",
+          "#456892",
+          "#668cba",
+          "#8db1dd",
+          "#b4d4fb",
+          "#e5f0fd"
+        ]
+      },
+      "soon-text": {
+        "role": "neutral",
+        "displayName": "Soon field text",
+        "canonical": "oklch(96.2% 0.011 128.6)",
+        "tonalRamp": [
+          "#0a0c09",
+          "#252723",
+          "#434641",
+          "#646761",
+          "#878b83",
+          "#acafa8",
+          "#cfd2cc",
+          "#edefea"
+        ]
+      },
+      "soon-register": {
+        "role": "tertiary",
+        "displayName": "Soon register ink",
+        "canonical": "oklch(29.3% 0.059 164.2)",
+        "tonalRamp": [
+          "#010f08",
+          "#112d21",
+          "#2a4e3e",
+          "#46715d",
+          "#689580",
+          "#8fb9a5",
+          "#b6dbc9",
+          "#d8f7e8"
+        ]
+      },
+      "hero-field-night": {
+        "role": "primary",
+        "displayName": "Hero field at night",
+        "canonical": "oklch(42.9% 0.135 34.1)",
+        "tonalRamp": [
+          "#1f0000",
+          "#490e03",
+          "#762816",
+          "#a24530",
+          "#cd6850",
+          "#f19079",
+          "#fdc0b2",
+          "#fde9e5"
+        ]
+      },
+      "hero-text-night": {
+        "role": "neutral",
+        "displayName": "Hero text at night",
+        "canonical": "oklch(94.7% 0.020 62.9)",
+        "tonalRamp": [
+          "#0e0a07",
+          "#2b2520",
+          "#4c433c",
+          "#6f645b",
+          "#92877d",
+          "#b7aca2",
+          "#d9cfc7",
+          "#f5ede6"
+        ]
+      },
+      "shots-field-night": {
+        "role": "secondary",
+        "displayName": "Shots field at night",
+        "canonical": "oklch(29.7% 0.057 82.9)",
+        "tonalRamp": [
+          "#110a01",
+          "#30250f",
+          "#524326",
+          "#766341",
+          "#9a8662",
+          "#beac89",
+          "#dfcfb1",
+          "#fbedd3"
+        ]
+      },
+      "shots-text-night": {
+        "role": "neutral",
+        "displayName": "Shots text at night",
+        "canonical": "oklch(93.4% 0.032 91.0)",
+        "tonalRamp": [
+          "#0d0b05",
+          "#2a261a",
+          "#4a4535",
+          "#6c6652",
+          "#908974",
+          "#b5ae9a",
+          "#d7d1bf",
+          "#f3eedf"
+        ]
+      },
+      "shots-register-night": {
+        "role": "secondary",
+        "displayName": "Shots register at night",
+        "canonical": "oklch(19.3% 0.039 87.2)",
+        "tonalRamp": [
+          "#0e0b04",
+          "#2c2617",
+          "#4d4430",
+          "#6f654d",
+          "#93886e",
+          "#b8ad95",
+          "#dad0bb",
+          "#f6eedc"
+        ]
+      },
+      "today-field-night": {
+        "role": "tertiary",
+        "displayName": "Today field at night",
+        "canonical": "oklch(19.8% 0.037 256.0)",
+        "tonalRamp": [
+          "#070b12",
+          "#1e2733",
+          "#3a4656",
+          "#59677a",
+          "#7b8ba0",
+          "#a0afc3",
+          "#c5d2e4",
+          "#e4f0ff"
+        ]
+      },
+      "today-rule-night": {
+        "role": "tertiary",
+        "displayName": "Today hairline at night",
+        "canonical": "oklch(38.9% 0.067 254.8)",
+        "tonalRamp": [
+          "#030b18",
+          "#17273c",
+          "#304663",
+          "#4d688b",
+          "#6e8bb1",
+          "#94b0d4",
+          "#bad3f3",
+          "#e4f0fe"
+        ]
+      },
+      "soon-field-night": {
+        "role": "tertiary",
+        "displayName": "Soon field at night",
+        "canonical": "oklch(30.5% 0.057 169.0)",
+        "tonalRamp": [
+          "#010f09",
+          "#112c23",
+          "#294d41",
+          "#457061",
+          "#679583",
+          "#8eb9a8",
+          "#b6dbcc",
+          "#d8f7ea"
+        ]
+      },
+      "soon-register-night": {
+        "role": "tertiary",
+        "displayName": "Soon register at night",
+        "canonical": "oklch(20.7% 0.038 170.4)",
+        "tonalRamp": [
+          "#040e0a",
+          "#192b25",
+          "#344b42",
+          "#516d63",
+          "#739186",
+          "#99b5ab",
+          "#bfd8ce",
+          "#dff4ec"
+        ]
+      },
+      "box-field-night": {
+        "role": "neutral",
+        "displayName": "Box-office field at night",
+        "canonical": "oklch(19.4% 0.013 44.4)",
+        "tonalRamp": [
+          "#0d0a09",
+          "#2a2523",
+          "#4a4340",
+          "#6d6460",
+          "#908783",
+          "#b5aca8",
+          "#d7cfcc",
+          "#f4edea"
+        ]
+      },
+      "box-text-night": {
+        "role": "neutral",
+        "displayName": "Box-office text at night",
+        "canonical": "oklch(92.3% 0.021 85.9)",
+        "tonalRamp": [
+          "#0d0b07",
+          "#2a261e",
+          "#49443a",
+          "#6b6559",
+          "#8f897b",
+          "#b3ada0",
+          "#d6d0c5",
+          "#f3eee4"
+        ]
+      },
+      "box-title-night": {
+        "role": "primary",
+        "displayName": "Box-office title at night",
+        "canonical": "oklch(72.8% 0.172 37.4)",
+        "tonalRamp": [
+          "#1e0100",
+          "#490e00",
+          "#7b2201",
+          "#b03708",
+          "#dc5b33",
+          "#fe8865",
+          "#fdc1af",
+          "#fdeae4"
+        ]
+      },
+      "box-register-night": {
+        "role": "primary",
+        "displayName": "Box-office register at night",
+        "canonical": "oklch(33.7% 0.086 38.3)",
+        "tonalRamp": [
+          "#190501",
+          "#3e1b10",
+          "#663627",
+          "#8e5542",
+          "#b67763",
+          "#da9d8a",
+          "#f9c3b1",
+          "#feeae3"
+        ]
+      },
+      "marquee-night": {
+        "role": "neutral",
+        "displayName": "Marquee at night",
+        "canonical": "oklch(13.8% 0.016 253.5)",
+        "tonalRamp": [
+          "#090b0e",
+          "#23272c",
+          "#40464c",
+          "#60676f",
+          "#838a93",
+          "#a8afb7",
+          "#ccd2d9",
+          "#eaeff5"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The hero headline, two unbroken lines."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "One per band, in the band title ink."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "The name of a shot on its card."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "The two lines under the headline."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running copy, held to about 38rem."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Stubs, the marquee, ticket headings and the stamp; always uppercase."
+      },
+      "billing": {
+        "displayName": "Billing",
+        "purpose": "Credits under a film name and shot numbers; uppercase, soft ink."
+      },
+      "script": {
+        "displayName": "Script",
+        "purpose": "The single word after the presenter name on the feature card."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "Commands, in the reader system monospace."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift",
+        "value": "0 1px 1px rgb(20 10 6 / 0.3), 0 18px 30px -14px rgb(20 10 6 / 0.55)",
+        "purpose": "Pinned paper: lobby cards and tickets. The only blurred box shadow."
+      },
+      {
+        "name": "pointer-shadow",
+        "value": "drop-shadow(0 10px 8px rgb(20 10 6 / 0.35))",
+        "purpose": "The pointer resting on the feature card."
+      },
+      {
+        "name": "second-ink",
+        "value": "0.045em 0.05em 0 var(--register)",
+        "purpose": "Text shadow on poster lettering: the off-register second ink, never blurred."
+      },
+      {
+        "name": "tack-second-ink",
+        "value": "1.5px 1.5px 0 #f2b705",
+        "purpose": "The same off-register device on the thumbtack."
+      }
+    ],
+    "motion": [
+      {
+        "name": "out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The one easing curve, for arrivals and state changes."
+      },
+      {
+        "name": "register",
+        "value": "1.1s, 0.15s delay, once",
+        "purpose": "The second ink of the headline and the film name slides from 0.42em -0.12em into register."
+      },
+      {
+        "name": "arrive",
+        "value": "1.2s, 0.35s delay, once",
+        "purpose": "The pointer travels from -5rem 3.5rem to rest on the feature card."
+      },
+      {
+        "name": "stub-state",
+        "value": "0.2s",
+        "purpose": "Stub ink swap and 1px lift on hover, 1px press on active."
+      },
+      {
+        "name": "halftone-lift",
+        "value": "0.3s",
+        "purpose": "The halftone screen fades off a still while its shot plays."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "no arrival animation, 0.01ms transitions, no autoplay",
+        "purpose": "What prefers-reduced-motion: reduce receives."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wardrobe-two-up",
+        "value": "29.99rem"
+      },
+      {
+        "name": "case-one-column",
+        "value": "35.99rem"
+      },
+      {
+        "name": "marquee-static",
+        "value": "43.99rem"
+      },
+      {
+        "name": "bill-one-column",
+        "value": "47.99rem"
+      },
+      {
+        "name": "single-column",
+        "value": "59.99rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Ticket Stub",
+      "kind": "button",
+      "refersTo": "stub",
+      "description": "The default control: ink with a stock label and perforated short edges.",
+      "html": "<button type=\"button\" class=\"ds-stub\">Pause</button>",
+      "css": ".ds-stub { appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: 0.55rem 1.25rem; border: 0; border-radius: 2px; font: 700 0.875rem/1 var(--narrow, 'Archivo Narrow', sans-serif); letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; cursor: pointer; -webkit-mask: radial-gradient(circle at 0 50%, transparent 0.3rem, #000 0.33rem) 0 50% / 51% 0.9rem repeat-y, radial-gradient(circle at 100% 50%, transparent 0.3rem, #000 0.33rem) 100% 50% / 51% 0.9rem repeat-y; mask: radial-gradient(circle at 0 50%, transparent 0.3rem, #000 0.33rem) 0 50% / 51% 0.9rem repeat-y, radial-gradient(circle at 100% 50%, transparent 0.3rem, #000 0.33rem) 100% 50% / 51% 0.9rem repeat-y; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), translate 0.2s cubic-bezier(0.16, 1, 0.3, 1); background: var(--card-ink, #1b100c); color: var(--card, #f6f1e4);  } .ds-stub:hover { background: var(--vermilion, #e2502a); color: #1b100c; } .ds-stub:hover { translate: 0 -1px; } .ds-stub:active { translate: 0 1px; } .ds-stub:focus-visible { outline: 3px solid var(--vermilion, #e2502a); outline-offset: 4px; }"
+    },
+    {
+      "name": "Primary Ticket Stub",
+      "kind": "button",
+      "refersTo": "stub-primary",
+      "description": "One per ticket, for copying the command. Vermilion that swaps to ink on hover.",
+      "html": "<button type=\"button\" class=\"ds-stub-primary\">Copy</button>",
+      "css": ".ds-stub-primary { appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: 0.55rem 1.25rem; border: 0; border-radius: 2px; font: 700 0.875rem/1 var(--narrow, 'Archivo Narrow', sans-serif); letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; cursor: pointer; -webkit-mask: radial-gradient(circle at 0 50%, transparent 0.3rem, #000 0.33rem) 0 50% / 51% 0.9rem repeat-y, radial-gradient(circle at 100% 50%, transparent 0.3rem, #000 0.33rem) 100% 50% / 51% 0.9rem repeat-y; mask: radial-gradient(circle at 0 50%, transparent 0.3rem, #000 0.33rem) 0 50% / 51% 0.9rem repeat-y, radial-gradient(circle at 100% 50%, transparent 0.3rem, #000 0.33rem) 100% 50% / 51% 0.9rem repeat-y; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), translate 0.2s cubic-bezier(0.16, 1, 0.3, 1); background: var(--vermilion, #e2502a); color: #1b100c; padding-inline: 1.75rem; } .ds-stub-primary:hover { background: var(--card-ink, #1b100c); color: var(--card, #f6f1e4); } .ds-stub-primary:hover { translate: 0 -1px; } .ds-stub-primary:active { translate: 0 1px; } .ds-stub-primary:focus-visible { outline: 3px solid var(--vermilion, #e2502a); outline-offset: 4px; }"
+    },
+    {
+      "name": "Play Stub",
+      "kind": "button",
+      "refersTo": "stub-play",
+      "description": "Marigold stub pinned to the lower left of a still; plays that shot in the card.",
+      "html": "<button type=\"button\" class=\"ds-stub-play\">Play shot 2</button>",
+      "css": ".ds-stub-play { appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: 0.55rem 1.25rem; border: 0; border-radius: 2px; font: 700 0.875rem/1 var(--narrow, 'Archivo Narrow', sans-serif); letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; cursor: pointer; -webkit-mask: radial-gradient(circle at 0 50%, transparent 0.3rem, #000 0.33rem) 0 50% / 51% 0.9rem repeat-y, radial-gradient(circle at 100% 50%, transparent 0.3rem, #000 0.33rem) 100% 50% / 51% 0.9rem repeat-y; mask: radial-gradient(circle at 0 50%, transparent 0.3rem, #000 0.33rem) 0 50% / 51% 0.9rem repeat-y, radial-gradient(circle at 100% 50%, transparent 0.3rem, #000 0.33rem) 100% 50% / 51% 0.9rem repeat-y; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), translate 0.2s cubic-bezier(0.16, 1, 0.3, 1); background: var(--marigold, #f2b705); color: #1b100c; min-height: 2.5rem; } .ds-stub-play:hover { background: var(--vermilion, #e2502a); color: #1b100c; } .ds-stub-play:hover { translate: 0 -1px; } .ds-stub-play:active { translate: 0 1px; } .ds-stub-play:focus-visible { outline: 3px solid var(--vermilion, #e2502a); outline-offset: 4px; }"
+    },
+    {
+      "name": "Done Stub",
+      "kind": "button",
+      "refersTo": "stub-done",
+      "description": "Confirmed state: copied, sound on, or shot playing.",
+      "html": "<button type=\"button\" class=\"ds-stub-done\">Copied</button>",
+      "css": ".ds-stub-done { appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: 0.55rem 1.25rem; border: 0; border-radius: 2px; font: 700 0.875rem/1 var(--narrow, 'Archivo Narrow', sans-serif); letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; cursor: pointer; -webkit-mask: radial-gradient(circle at 0 50%, transparent 0.3rem, #000 0.33rem) 0 50% / 51% 0.9rem repeat-y, radial-gradient(circle at 100% 50%, transparent 0.3rem, #000 0.33rem) 100% 50% / 51% 0.9rem repeat-y; mask: radial-gradient(circle at 0 50%, transparent 0.3rem, #000 0.33rem) 0 50% / 51% 0.9rem repeat-y, radial-gradient(circle at 100% 50%, transparent 0.3rem, #000 0.33rem) 100% 50% / 51% 0.9rem repeat-y; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), translate 0.2s cubic-bezier(0.16, 1, 0.3, 1); background: var(--green, #0b6e4f); color: #f6f1e4;  } .ds-stub-done:hover { background: var(--vermilion, #e2502a); color: #1b100c; } .ds-stub-done:hover { translate: 0 -1px; } .ds-stub-done:active { translate: 0 1px; } .ds-stub-done:focus-visible { outline: 3px solid var(--vermilion, #e2502a); outline-offset: 4px; }"
+    },
+    {
+      "name": "Lobby Card",
+      "kind": "card",
+      "refersTo": "lobby-card",
+      "description": "The signature object: pinned card stock holding a real still under a halftone screen, with the shot name, number and duration.",
+      "html": "<article class=\"ds-lobby\"><div class=\"ds-lobby__still\"><img src=\"/footage/shot-2.webp\" width=\"960\" height=\"540\" alt=\"A frame of the take: the camera pushing in on the headline of the filmed page\" /></div><div class=\"ds-lobby__band\"><h3 class=\"ds-lobby__name\">Push-in</h3><p class=\"ds-lobby__no\">Shot 2 <span>3.2 s</span></p><p>The camera closes on the headline.</p></div></article>",
+      "css": ".ds-lobby { position: relative; max-width: 26rem; background: var(--card, #f6f1e4); color: var(--card-ink, #1b100c); padding: 0.7rem; border: 1.5px solid var(--card-ink, #1b100c); border-radius: 2px; box-shadow: 0 1px 1px rgb(20 10 6 / 0.3), 0 18px 30px -14px rgb(20 10 6 / 0.55); rotate: -1.6deg; font: 400 0.9375rem/1.45 var(--text, 'Archivo', sans-serif); } .ds-lobby::before { content: ''; position: absolute; top: -0.45rem; left: 50%; width: 0.95rem; aspect-ratio: 1; translate: -50% 0; border-radius: 50%; background: #b5361a; box-shadow: 1.5px 1.5px 0 var(--marigold, #f2b705); } .ds-lobby__still { position: relative; aspect-ratio: 16 / 9; background: #05070b; outline: 2px solid var(--card-ink, #1b100c); overflow: hidden; } .ds-lobby__still::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgb(10 6 4 / 0.5) 0.7px, transparent 1.2px); background-size: 4px 4px; mix-blend-mode: multiply; opacity: 0.55; } .ds-lobby__still img { display: block; width: 100%; height: 100%; object-fit: cover; } .ds-lobby__band { display: grid; gap: 0.45rem; padding: 1rem 0.5rem 0.45rem; } .ds-lobby__band p { margin: 0; } .ds-lobby__name { margin: 0; font-family: var(--display, 'Bowlby One', sans-serif); font-weight: 400; line-height: 0.98; letter-spacing: -0.012em; font-size: 1.6rem; line-height: 1.05; color: var(--night, #12355b); } .ds-lobby__no { display: flex; gap: 0.9rem; font: 700 0.8125rem/1.2 var(--narrow, 'Archivo Narrow', sans-serif); letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-soft, #54453c); font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Ticket",
+      "kind": "custom",
+      "refersTo": "ticket",
+      "description": "Notched stock paper holding a heading, a command in a dashed box, a copy stub and a note.",
+      "html": "<div class=\"ds-ticket\"><p class=\"ds-ticket__label\">Film a product</p><code class=\"ds-ticket__command\">npm run produce -- --dry-run</code><button type=\"button\" class=\"ds-ticket__stub\">Copy</button><p class=\"ds-ticket__note\">Lists what would be filmed.</p></div>",
+      "css": ".ds-ticket { display: grid; gap: 0.7rem; justify-items: start; max-width: 24rem; padding: 1.15rem 1.5rem 1.25rem; background: radial-gradient(circle at 0 50%, var(--field, var(--hero-field, #e2502a)) 0.55rem, transparent 0.58rem), radial-gradient(circle at 100% 50%, var(--field, var(--hero-field, #e2502a)) 0.55rem, transparent 0.58rem), var(--card, #f6f1e4); color: var(--card-ink, #1b100c); border-radius: 2px; box-shadow: 0 1px 1px rgb(20 10 6 / 0.3), 0 18px 30px -14px rgb(20 10 6 / 0.55); font: 400 0.9375rem/1.5 var(--text, 'Archivo', sans-serif); } .ds-ticket p { margin: 0; } .ds-ticket__label { font: 700 0.9375rem/1.2 var(--narrow, 'Archivo Narrow', sans-serif); letter-spacing: 0.1em; text-transform: uppercase; } .ds-ticket__command { display: block; width: 100%; box-sizing: border-box; padding: 0.75rem 0.85rem; border: 1.5px dashed var(--card-soft, #54453c); border-radius: 2px; font-family: var(--code, ui-monospace, monospace); font-size: 0.875rem; line-height: 1.5; user-select: all; overflow-wrap: anywhere; } .ds-ticket__note { font-size: 0.875rem; color: var(--card-soft, #54453c); } .ds-ticket__stub { appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: 0.55rem 1.25rem; border: 0; border-radius: 2px; font: 700 0.875rem/1 var(--narrow, 'Archivo Narrow', sans-serif); letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; cursor: pointer; -webkit-mask: radial-gradient(circle at 0 50%, transparent 0.3rem, #000 0.33rem) 0 50% / 51% 0.9rem repeat-y, radial-gradient(circle at 100% 50%, transparent 0.3rem, #000 0.33rem) 100% 50% / 51% 0.9rem repeat-y; mask: radial-gradient(circle at 0 50%, transparent 0.3rem, #000 0.33rem) 0 50% / 51% 0.9rem repeat-y, radial-gradient(circle at 100% 50%, transparent 0.3rem, #000 0.33rem) 100% 50% / 51% 0.9rem repeat-y; transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), translate 0.2s cubic-bezier(0.16, 1, 0.3, 1); background: var(--vermilion, #e2502a); color: #1b100c; padding-inline: 1.75rem; } .ds-ticket__stub:hover { background: var(--card-ink, #1b100c); color: var(--card, #f6f1e4); } .ds-ticket__stub:hover { translate: 0 -1px; } .ds-ticket__stub:active { translate: 0 1px; } .ds-ticket__stub:focus-visible { outline: 3px solid var(--vermilion, #e2502a); outline-offset: 4px; }"
+    },
+    {
+      "name": "Poster Lettering",
+      "kind": "custom",
+      "refersTo": "display",
+      "description": "Bowlby One with a hard second ink printed out of register; it slides into register once on arrival.",
+      "html": "<p class=\"ds-lettering\">enclii.dev</p>",
+      "css": ".ds-lettering { margin: 0; padding: 0.4em 0.5em; background: var(--card, #f6f1e4); font-family: var(--display, 'Bowlby One', sans-serif); font-weight: 400; line-height: 0.98; letter-spacing: -0.012em; font-size: clamp(2rem, 5.2vw, 4.4rem); color: var(--night, #12355b); text-wrap: balance; text-shadow: 0.045em 0.05em 0 var(--marigold, #f2b705); } @media (prefers-reduced-motion: no-preference) { .ds-lettering { animation: ds-register 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both; } @keyframes ds-register { from { text-shadow: 0.42em -0.12em 0 var(--marigold, #f2b705); } to { text-shadow: 0.045em 0.05em 0 var(--marigold, #f2b705); } } }"
+    },
+    {
+      "name": "Bill Row",
+      "kind": "custom",
+      "refersTo": "title",
+      "description": "One line of the bill of what runs today: name, sentence and command.",
+      "html": "<dl class=\"ds-bill\"><div class=\"ds-bill__row\"><dt>Page capture</dt><dd><p>Writes a page as tiles with a manifest.</p><code>capture page &lt;url&gt;</code></dd></div></dl>",
+      "css": ".ds-bill { margin: 0; padding: 0 1.5rem; background: var(--today-field, #12355b); color: var(--today-text, #eef0ea); border-top: 2px solid var(--today-rule, #3a5f8a); font: 400 1.0625rem/1.55 var(--text, 'Archivo', sans-serif); } .ds-bill__row { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 0.75rem 2rem; padding-block: 1.6rem; border-bottom: 2px solid var(--today-rule, #3a5f8a); } .ds-bill dt { font-family: var(--display, 'Bowlby One', sans-serif); font-size: clamp(1.35rem, 2.6vw, 2.1rem); line-height: 1.05; color: var(--stock, #f6f1e4); } .ds-bill dd { display: grid; gap: 0.85rem; justify-items: start; margin: 0; } .ds-bill p { margin: 0; } .ds-bill code { padding: 0.4rem 0.7rem; border: 1.5px dashed var(--today-rule, #3a5f8a); border-radius: 2px; color: var(--marigold, #f2b705); font-family: var(--code, ui-monospace, monospace); font-size: 0.86em; }"
+    },
+    {
+      "name": "Marquee",
+      "kind": "nav",
+      "refersTo": "marquee",
+      "description": "The bar across the top: name in marigold lettering, narrow-capital links.",
+      "html": "<nav class=\"ds-marquee\" aria-label=\"Sections\"><a class=\"ds-marquee__name\" href=\"#\">Cinematic Pointer</a><a href=\"#\">The shots</a><a href=\"#\">Today</a><a href=\"#\">Box office</a><a class=\"ds-marquee__lang\" href=\"#\">English</a></nav>",
+      "css": ".ds-marquee { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 1.35rem; padding: 0.7rem 1.5rem; background: var(--marquee, #1b100c); color: var(--marquee-text, #f6f1e4); font: 600 0.875rem/1.55 var(--narrow, 'Archivo Narrow', sans-serif); letter-spacing: 0.09em; text-transform: uppercase; } .ds-marquee a { color: inherit; text-decoration: none; padding-block: 0.35rem; } .ds-marquee a:hover { color: var(--marigold, #f2b705); } .ds-marquee a:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; border-radius: 2px; } .ds-marquee__name { margin-right: auto; font-family: var(--display, 'Bowlby One', sans-serif); font-size: 1.05rem; letter-spacing: 0.01em; text-transform: none; color: var(--marigold, #f2b705) !important; } .ds-marquee__lang { border: 1.5px solid currentColor; padding: 0.2rem 0.65rem !important; border-radius: 2px; }"
+    },
+    {
+      "name": "In-production Stamp",
+      "kind": "chip",
+      "refersTo": "stamp",
+      "description": "Marks a band as unshipped work. Used wherever in-production work is described.",
+      "html": "<p class=\"ds-stampwrap\"><span class=\"ds-stamp\">In production</span></p>",
+      "css": ".ds-stampwrap { margin: 0; padding: 1.5rem; background: var(--soon-field, #0b6e4f); } .ds-stamp { display: inline-block; padding: 0.4rem 0.8rem; border: 2.5px solid var(--marigold, #f2b705); border-radius: 3px; color: var(--soon-text, #f0f4ec); font: 700 0.875rem/1.2 var(--narrow, 'Archivo Narrow', sans-serif); letter-spacing: 0.12em; text-transform: uppercase; rotate: -2deg; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Case Outside the Cinema",
+    "overview": "The page is the glass case on the wall outside a neighbourhood cinema. Behind the glass, flat printed colour runs edge to edge, and on it hang lobby cards: pale card stock, a thin ink border, a thumbtack, a small tilt. Every card holds a real still of a film the tool made from a live page. The reader is a passer-by deciding whether to buy a ticket, so the controls are ticket stubs and the commands sit on tickets.\n\nIt is a printed world. Colour is ink laid flat, one ink per band, with no gradients and no glass. Lettering is fat poster type with a second ink printed slightly out of register. The only soft thing on the page is the shadow a pinned card throws on the wall behind it. Density is generous: five bands, each with one job, each large enough to be read from across the street.\n\nThe system is honest by construction. A card may only frame footage that exists, and work that has not shipped is stamped as in production and shown as line drawings, never as stills.",
+    "keyCharacteristics": [
+      "One flat ink owns each whole band; cards and tickets are the only pale objects on it.",
+      "Card stock is a constant: it does not change between the light and dark schemes.",
+      "Poster lettering carries a hard, unblurred second ink offset down and to the right.",
+      "Every control is a ticket stub with a perforated short edge.",
+      "Stills are real frames; a halftone screen covers the printed still and lifts while film plays.",
+      "The second ink registers once on arrival; nothing animates on scroll."
+    ],
+    "rules": [
+      {
+        "name": "The One Ink Per Band Rule",
+        "body": "A band is one flat ink from edge to edge. No gradient, no texture, no second field inside it. The only things that sit on a field are type, hairlines, cards and tickets.",
+        "section": "colors"
+      },
+      {
+        "name": "The Card Stock Rule",
+        "body": "Cards, tickets and stubs are printed objects lit by the case. Their stock, ink and soft ink never change with the colour scheme.",
+        "section": "colors"
+      },
+      {
+        "name": "The Red Stays Red Rule",
+        "body": "At night the hero is still a red field. It darkens; it does not turn grey, black or blue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Large Vermilion Rule",
+        "body": "Vermilion against stock, in either direction, is for poster-size lettering only (3.4:1). Small red text on stock uses tack red (5.3:1).",
+        "section": "colors"
+      },
+      {
+        "name": "The Second Ink Rule",
+        "body": "Poster lettering is printed twice: once in its own colour and once in the band's register ink, offset 0.045em right and 0.05em down with no blur. The offset is a misregistered print, so it is always hard-edged, always the same direction, and only ever applied to Bowlby One. The thumbtack and the pointer carry the same device.",
+        "section": "typography"
+      },
+      {
+        "name": "The Script Once Rule",
+        "body": "Yesteryear appears once per card, for the presenter's line. It never sets a heading, a label or body text.",
+        "section": "typography"
+      },
+      {
+        "name": "The Billing Block Rule",
+        "body": "Archivo Narrow is always uppercase and letterspaced. It is for credits, numbers and controls, never for sentences.",
+        "section": "typography"
+      },
+      {
+        "name": "The Pinned Paper Rule",
+        "body": "Only paper casts a shadow. Fields, bands, the marquee, stubs and type never lift.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do give each band one flat ink and set its field, text, title and register roles together.",
+      "Do put photographs and film only inside a lobby card, on stock, with its ink border and tack.",
+      "Do use real frames from a real take, kept beside a record of their source.",
+      "Do state a shot's real number and duration on its card.",
+      "Do stamp unshipped work as in production and draw it in line, on the green field.",
+      "Do make every control a ticket stub with a visible focus outline and a 2.5rem minimum height.",
+      "Do keep the second ink hard-edged, down and to the right, and on Bowlby One only.",
+      "Do keep card stock constant at night and let the fields darken around it.",
+      "Do keep every font and asset self-hosted."
+    ],
+    "donts": [
+      "Don't frame a mock-up, a render or a placeholder as a lobby card; an empty case is honest.",
+      "Don't imply a library of films: one take exists, and the page shows one.",
+      "Don't blur the second ink, or use a soft shadow on anything that is not pinned paper.",
+      "Don't put gradients, glows or glass on a field.",
+      "Don't animate on scroll; the two arrival movements are the whole budget.",
+      "Don't let the hero turn black or grey in the dark scheme.",
+      "Don't set small text in vermilion on stock; use tack red.",
+      "Don't set sentences in Archivo Narrow, or anything but the presenter's word in Yesteryear.",
+      "Don't play sound unasked or start the film when reduced motion is requested."
+    ]
+  }
+}

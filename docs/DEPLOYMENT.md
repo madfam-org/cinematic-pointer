@@ -6,6 +6,8 @@
 > Operator gates and adapter-gap records live in MADFAM's private ops repository; this file keeps the
 > public-safe command sequence only.
 
+**State: live since 2026-11-20** ([First deploy](#first-deploy)).
+
 Only the landing is deployed from this repository. The command-line tool is not a service: it is an
 image (`ghcr.io/madfam-org/cinematic-pointer`, built by `image.yml`) that consumers pin by digest.
 
@@ -151,3 +153,36 @@ sign-in.
 The zone's edge adds an analytics script tag to HTML it serves to browsers. The page's content
 security policy (`script-src 'self'`) refuses it, so nothing is measured; do not loosen that policy.
 Turning the tag off is a zone setting and the owner's call.
+
+## First deploy
+
+**2026-11-20, on the owner's instruction in session ("merge PR 13 and deploy once CI is green").**
+Times are UTC.
+
+| When  | What                                                                                                       | Evidence                                                                                    |
+| ----- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 08:13 | Landing merged to `main` at `0dfbc67` (pull request 13, squash), CI green                                  | merge API response                                                                          |
+| 08:13 | Landing workflow dispatched on `main`; success                                                             | run `44700827376`                                                                           |
+| 08:14 | Image digest `sha256:f059b721…e51407` pinned in `infra/k8s/production/kustomization.yaml` at `c829293`     | commit by the workflow                                                                      |
+| 08:15 | `enclii onboard …` (project, namespace and GitOps application `cinematic-pointer-services` created)        | reported `PARTIAL` while no pod served; two pods ready shortly after                        |
+| 08:16 | `enclii onboard ensure …`                                                                                  | `Status: completed`, every step `ok`                                                        |
+| 08:16 | `enclii ops domains reconcile cinematic-pointer-landing --apply`, twice                                    | both passes ended `partial` with `stillMissing=["trailer.madfam.io"]`                       |
+| 17:03 | The same reconcile, a third pass                                                                           | `op_1795194249477958822`: `stillMissing=[]`                                                 |
+| 17:04 | `enclii providers cloudflare tunnels-apply --project cinematic-pointer --apply --expect-plan 337e8dbe3b0d` | `op_1795194268288273280`: one route created, to Service `cinematic-pointer-landing` port 80 |
+| 17:04 | Edge probe                                                                                                 | below                                                                                       |
+
+Edge probe at 2026-11-20T17:04:31Z: `/` and `/en` 200 (HTML); `/health` 200 with
+`{"status":"ok","service":"cinematic-pointer-landing","revision":"0dfbc676…"}`; `/ready` 200;
+`/metrics` 404; an unknown path 404; `http://` redirects to `https://` (301);
+`x-robots-tag: noindex, nofollow`; the content security policy set in `site/server/server.mjs`; the
+clip answers a byte range with 206. In a browser the four typefaces loaded, the film played and a lobby
+card played its shot.
+
+What the first deploy taught:
+
+1. **The domain reconcile can end `partial` more than once.** Two passes a few seconds apart both left
+   the host missing; a pass made later succeeded. The tunnel plan is empty ("no junction domains")
+   until the reconcile returns `stillMissing=[]`, so wait and re-run it before planning the tunnel.
+2. **The edge serves its managed block at the top of `robots.txt`**, ahead of this service's
+   disallow-all, and adds its analytics script tag for browsers (the policy refuses the script). The
+   header and the meta tag carry the unindexing.
