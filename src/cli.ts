@@ -161,6 +161,12 @@ program
     'Cinematic take without motion blur: a fifth of the work, to check framing, not to publish',
     false,
   )
+  .option(
+    '--persona <name>',
+    'Whose hand the pointer is in a cinematic take: guide, operator, analyst, explorer, maker, or a .json file',
+    'guide',
+  )
+  .option('--no-pointer', 'Cinematic take with no pointer in it')
   .option('--dry-run', 'List the selected trailers and render nothing', false)
   .action(produceCommand);
 
