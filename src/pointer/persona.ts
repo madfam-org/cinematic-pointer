@@ -115,7 +115,10 @@ export const PERSONAS: Record<string, Persona> = {
   },
 };
 
-const COLOUR = /^(#[0-9a-fA-F]{3,8}|rgba?\([0-9.,\s%]+\))$/;
+/** A colour a persona may use: a hex form CSS accepts, or rgb()/rgba() of plain numbers. */
+export const COLOUR = /^(#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})|rgba?\([0-9., %]+\))$/;
+
+const own = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
 
 function inRange(name: string, value: unknown, min: number, max: number): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max) {
@@ -139,6 +142,8 @@ export function parsePersona(raw: unknown): Persona {
       throw new Error(`Persona ${key} must be a hex or rgb colour`);
     }
   }
+  if (typeof merged.reads !== 'boolean') throw new Error('Persona reads must be true or false');
+  const reads = merged.reads;
   const wardrobe = { ...WARDROBE };
   const given = input.wardrobe;
   if (given !== undefined) {
@@ -148,7 +153,7 @@ export function parsePersona(raw: unknown): Persona {
       if (!POINTER_STATES.includes(state as PointerState)) {
         throw new Error(`Persona wardrobe has no state "${state}"`);
       }
-      if (typeof outfit !== 'string' || !(outfit in OUTFITS)) {
+      if (typeof outfit !== 'string' || !own(OUTFITS, outfit)) {
         throw new Error(`Persona wardrobe names an unknown outfit for "${state}"`);
       }
       wardrobe[state as PointerState] = outfit as OutfitId;
@@ -160,7 +165,7 @@ export function parsePersona(raw: unknown): Persona {
     pace: inRange('pace', merged.pace, 0.5, 2),
     bow: inRange('bow', merged.bow, -0.4, 0.4),
     hesitation: inRange('hesitation', merged.hesitation, 0, 1.5),
-    reads: merged.reads === true,
+    reads,
     size: inRange('size', merged.size, 16, 120),
     ink: merged.ink as string,
     fill: merged.fill as string,
@@ -171,7 +176,7 @@ export function parsePersona(raw: unknown): Persona {
 
 /** A built-in persona by name, or one read from a `.json` file. */
 export async function loadPersona(nameOrPath: string): Promise<Persona> {
-  if (nameOrPath in PERSONAS) return PERSONAS[nameOrPath];
+  if (own(PERSONAS, nameOrPath)) return PERSONAS[nameOrPath];
   if (!nameOrPath.endsWith('.json')) {
     throw new Error(
       `Unknown persona "${nameOrPath}". Use ${Object.keys(PERSONAS).join(', ')}, or a .json file.`,

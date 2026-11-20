@@ -11,6 +11,7 @@
  */
 import { POINTER_MATH_JS } from '../pointer/motion';
 import { OUTFIT_IDS, OUTFITS, outfitSvg } from '../pointer/outfits';
+import { COLOUR } from '../pointer/persona';
 
 import { PageCapture, Screenplay } from './types';
 
@@ -181,6 +182,11 @@ export function buildStageHtml(
   const data = JSON.stringify({ screenplay, capture, options: { grain } }).replace(/</g, '\\u003c');
   const titleSize = Math.round(w * 0.058);
   const track = screenplay.pointer;
+  // These go into the style block as written, so they are checked here and not only where a
+  // persona file is read: a hand-built persona or an edited screenplay reaches this too.
+  for (const colour of track ? [track.ink, track.fill, track.ring] : []) {
+    if (!COLOUR.test(colour)) throw new Error('The pointer has a colour that is not hex or rgb');
+  }
   const size = track?.size ?? 0;
   // Every outfit is in the page, offset so its hotspot sits on the pointer's origin.
   const wardrobe = OUTFIT_IDS.map((id) => {

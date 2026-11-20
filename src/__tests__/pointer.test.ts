@@ -3,7 +3,7 @@ import { buildStageHtml } from '../cinema/stage';
 import { Landmark, PageCapture } from '../cinema/types';
 import { pointerAt, PointerTrack, PRESS_SECONDS, RING_SECONDS } from '../pointer/motion';
 import { OUTFIT_IDS, OUTFITS, outfitSvg } from '../pointer/outfits';
-import { parsePersona, PERSONAS, POINTER_STATES } from '../pointer/persona';
+import { loadPersona, parsePersona, PERSONAS, POINTER_STATES } from '../pointer/persona';
 
 const mark = (kind: Landmark['kind'], y: number): Landmark => ({
   kind,
@@ -66,9 +66,20 @@ describe('persona files', () => {
     [{ id: 'x', fill: 'red;} body{display:none' }, 'fill'],
     [{ id: 'x', fill: 'url(https://example.test/a.png)' }, 'fill'],
     [{ id: 'x', wardrobe: { travel: 'sword' } }, 'unknown outfit'],
+    [{ id: 'x', wardrobe: { travel: 'constructor' } }, 'unknown outfit'],
+    [{ id: 'x', ring: '#12345' }, 'ring'],
+    [{ id: 'x', reads: 'yes' }, 'reads'],
     [{ id: 'x', wardrobe: { dance: 'arrow' } }, 'no state'],
   ])('refuses %j', (raw, why) => {
     expect(() => parsePersona(raw)).toThrow(why);
+  });
+});
+
+describe('loading a persona by name', () => {
+  it('finds a built-in one and refuses names that are not personas', async () => {
+    expect((await loadPersona('operator')).id).toBe('operator');
+    await expect(loadPersona('nobody')).rejects.toThrow('Unknown persona');
+    await expect(loadPersona('constructor')).rejects.toThrow('Unknown persona');
   });
 });
 
@@ -127,7 +138,9 @@ describe('the pointer in a screenplay', () => {
   it('a screenplay with no persona has no pointer, and its stage carries none', () => {
     const plain = direct(page, { frame, name: 'Example' });
     expect(plain.pointer).toBeUndefined();
-    expect(buildStageHtml(page, plain)).not.toContain('id="pointer"');
+    const html = buildStageHtml(page, plain);
+    for (const id of ['pointer', 'pointer-shadow', 'rings'])
+      expect(html).not.toContain(`id="${id}"`);
   });
 
   it('stays off the title and end cards', () => {
@@ -186,7 +199,42 @@ describe('the pointer in a screenplay', () => {
     });
     expect(wide.pointer!.size).toBe(96);
     const html = buildStageHtml(page, wide);
-    expect(html).toContain('function pointerAt(track, t)');
-    for (const id of OUTFIT_IDS) expect(html).toContain(`data-outfit="${id}"`);
+    expect(html).toContain('id="pointer"');
+    expect(html).toContain('id="pointer-shadow"');
+    expect(html).toContain('id="rings"');
+    for (const id of OUTFIT_IDS) expect(html).toContain(`<div data-outfit="${id}"`);
+  });
+
+  it('across the whole range of manners, keys run forward and the press lands inside the close', () => {
+    for (const pace of [0.5, 1, 2]) {
+      for (const hesitation of [0, 0.4, 1.5]) {
+        for (const bow of [-0.4, 0.4]) {
+          const p = play({ ...PERSONAS.guide, pace, hesitation, bow });
+          const keys = p.pointer!.keys;
+          for (let i = 1; i < keys.length; i++) {
+            expect(keys[i].t).toBeGreaterThanOrEqual(keys[i - 1].t);
+          }
+          const close = shot(p, 'close');
+          expect(p.pointer!.presses).toHaveLength(1);
+          const when = p.pointer!.presses[0];
+          expect(when).toBeGreaterThanOrEqual(close.start);
+          expect(when + RING_SECONDS).toBeLessThan(close.start + close.duration);
+          expect(pointerAt(p.pointer!, when).outfit).toBe('press');
+        }
+      }
+    }
+  });
+
+  it('enters each shot from outside the frame', () => {
+    const p = play();
+    const hero = shot(p, 'hero');
+    const first = p.pointer!.keys.find((k) => k.t === hero.start)!;
+    expect(Math.abs(first.x - 720)).toBeGreaterThan(page.width / 2);
+  });
+
+  it('refuses a colour that is not a colour, however the track was made', () => {
+    const p = play();
+    p.pointer!.ring = 'red;} body{display:none';
+    expect(() => buildStageHtml(page, p)).toThrow('colour');
   });
 });

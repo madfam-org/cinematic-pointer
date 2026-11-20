@@ -398,7 +398,7 @@ A persona decides how the pointer moves and what it wears in each state:
 | `explorer` | New here and curious                | Wide arcs, lingers                        |
 | `maker`    | Designs and builds                  | Precise, frames the thing before touching |
 
-A persona file sets any of `pace` (0.5–2), `bow` (-0.4–0.4), `hesitation` (seconds, 0–1.5), `reads`,
+A persona file sets any of `pace` (0.5–2), `bow` (-0.4–0.4), `hesitation` (seconds, 0–1.5; a short shot caps it so the press is still seen), `reads`,
 `size`, `ink`, `fill`, `ring` and a `wardrobe` that maps a state (`travel`, `hover`, `press`, `read`,
 `wait`, `drag`, `inspect`) to an outfit (`arrow`, `point`, `press`, `text`, `wait`, `move`, `inspect`,
 `frame`). Only `id` is required; the rest take the guide's values.

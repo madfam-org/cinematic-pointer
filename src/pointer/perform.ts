@@ -43,7 +43,8 @@ export function perform(
   const keys: PointerKey[] = [];
   const presses: number[] = [];
   const wear = (state: PointerState) => persona.wardrobe[state];
-  const reach = options.viewWidth * 0.3;
+  // Beyond half the widest framing, so the entrance starts outside the frame.
+  const reach = options.viewWidth * 0.55;
 
   shots.forEach((shot, index) => {
     const subject = subjects[shot.name];
@@ -67,7 +68,7 @@ export function perform(
       key(arrive, cx, cy, 'hover', { bow });
       // Rest on the control, then press; always leave time for the press to be seen.
       const press = Math.min(arrive + persona.hesitation, end - PRESS_SECONDS - 0.5);
-      if (press > arrive) {
+      if (press >= arrive) {
         key(press, cx, cy, 'press', {});
         presses.push(round(press));
         key(press + PRESS_SECONDS, cx, cy, 'hover', {});
