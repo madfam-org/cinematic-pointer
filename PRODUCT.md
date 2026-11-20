@@ -57,12 +57,16 @@ Exists today:
   whole estate has not been filmed.
 - A catalog of 25 filmable products, and a published, signed command-line image.
 
-In progress, not shipped: the pointer as a character with outfits (arrow, pointing hand, press,
-I-beam, hourglass, move, crosshair, focus frame) and personas (guide, operator, analyst, explorer,
-maker). It may be described only as in progress.
+The pointer as a character (cinematic takes only): eight outfits (arrow, pointing hand, press,
+I-beam, hourglass, move, crosshair, focus frame) and five personas (guide, operator, analyst,
+explorer, maker, or a file). It enters each shot, reads the headline, visits each section and
+presses the call to action; `--no-pointer` gives the earlier output. No full take has been filmed
+with it, the hourglass and move outfits are drawn but unused, and the other recorders and the tour
+do not use it. The landing must say each of those limits.
 
 Constraints: public, signed-out pages of MADFAM's own products only. No prices restated, no client
-names, no invented metrics. One real take has been rendered end to end on film (the Enclii landing);
+names, no invented metrics. One real take has been rendered end to end on film (the Enclii landing, before the pointer
+existed, so the pointer is not in it);
 the landing must not imply a library of films.
 
 ## Brand Commitments
