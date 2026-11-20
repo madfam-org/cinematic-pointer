@@ -14,7 +14,7 @@ must believe a film of their page is one command away and that what comes out is
 command that films a product, then open the repository. Proof on hand: one real take of enclii.dev
 (clip and stills under `site/web/footage/`), the director's real shot durations, the export matrix,
 the catalog count. Constraints: no invented metrics, no film implied beyond the one that exists, the
-pointer character stated as in production only, WCAG 2.2 AA, no third-party request.
+pointer character stated with its limits (cinematic takes only, no full take filmed with it), WCAG 2.2 AA, no third-party request.
 
 ## Direction contract
 
@@ -30,7 +30,7 @@ stills. Controls are ticket stubs with a perforated edge.
 
 STORY: The visitor sees a real film playing in a lobby card, understands it was made from a live page
 by a command, reads the five shots as five cards that play when chosen, learns what else runs today and
-what is still in production, then copies the command for their own product.
+what the pointer character does and does not do yet, then copies the command for their own product.
 
 FIRST VIEWPORT: Vermilion field edge to edge. Left: the headline in poster lettering at display scale,
 two lines of plain copy, and the ticket stub holding the produce command with its copy control, the

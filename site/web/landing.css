@@ -674,9 +674,9 @@ code {
     z-index: 1;
   }
   .star {
-    right: 0.3rem;
-    bottom: -2.7rem;
-    width: 2.9rem;
+    right: 0.7rem;
+    bottom: 0.5rem;
+    width: 2.5rem;
   }
 }
 
@@ -905,6 +905,16 @@ code {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   rotate: -2deg;
+}
+.soon__copy code {
+  justify-self: start;
+  padding: 0.4rem 0.7rem;
+  border: 1.5px dashed rgb(246 241 228 / 0.55);
+  border-radius: 2px;
+  color: var(--stock);
+}
+.soon__fine {
+  font-size: 0.9375rem;
 }
 .wardrobe {
   display: grid;

@@ -158,7 +158,7 @@ thing on the page is the shadow a pinned card throws on the wall behind it. Dens
 five bands, each with one job, each large enough to be read from across the street.
 
 The system is honest by construction. A card may only frame footage that exists, and work that has
-not shipped is stamped as in production and shown as line drawings, never as stills.
+no footage yet is stamped with its status and shown as line drawings, never as stills.
 
 **Key Characteristics:**
 
@@ -190,7 +190,7 @@ Six printing inks, used flat and at full strength, each given a whole field to i
 
 - **Night Blue** (#12355b): the field for what runs today, and the ink of the film's name and of
   alternate card titles on stock.
-- **Green** (#0b6e4f): the field for work in production, and the confirmed state of a stub (copied,
+- **Green** (#0b6e4f): the field for the pointer character and for work with no footage yet, and the confirmed state of a stub (copied,
   sound on, shot playing).
 
 ### Neutral
@@ -381,8 +381,8 @@ capitals, and the other language as an outlined link. Links turn marigold on hov
 
 ### Stamp
 
-A marigold-bordered label in narrow capitals, tilted -2deg, that marks a band as in production. It
-is used wherever unshipped work is described and nowhere else.
+A marigold-bordered label in narrow capitals, tilted -2deg, that states a band's status in a few words (new, limited to one recorder, in production). It is
+used wherever work without footage is described and nowhere else.
 
 ### Wardrobe grid
 
@@ -404,7 +404,8 @@ film does not start by itself, and transitions are instant.
 - **Do** put photographs and film only inside a lobby card, on stock, with its ink border and tack.
 - **Do** use real frames from a real take, kept beside a record of their source.
 - **Do** state a shot's real number and duration on its card.
-- **Do** stamp unshipped work as in production and draw it in line, on the green field.
+- **Do** stamp work that has no footage yet with its real status and draw it in line, on the green
+  field.
 - **Do** make every control a ticket stub with a visible focus outline and a 2.5rem minimum height.
 - **Do** keep the second ink hard-edged, down and to the right, and on Bowlby One only.
 - **Do** keep card stock constant at night and let the fields darken around it.

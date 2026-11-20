@@ -32,7 +32,7 @@
         <ul>
           <li><a href="#planos">{{t:nav.shots}}</a></li>
           <li><a href="#cartelera">{{t:nav.today}}</a></li>
-          <li><a href="#proximamente">{{t:nav.soon}}</a></li>
+          <li><a href="#puntero">{{t:nav.soon}}</a></li>
           <li><a href="#taquilla">{{t:nav.box}}</a></li>
         </ul>
       </nav>
@@ -271,13 +271,15 @@
         </div>
       </section>
 
-      <section class="band band--soon" id="proximamente" aria-labelledby="soon-title">
+      <section class="band band--soon" id="puntero" aria-labelledby="soon-title">
         <div class="wrap soon">
           <div class="soon__copy">
             <h2 id="soon-title" class="lettering">{{t:soon.title}}</h2>
             <p class="stamp">{{t:soon.stamp}}</p>
             <p>{{t:soon.text}}</p>
             <p>{{t:soon.personas}}</p>
+            <code>produce --recorder cinematic --persona operator</code>
+            <p class="soon__fine">{{t:soon.limits}}</p>
           </div>
           <ul class="wardrobe" aria-label="{{t:soon.wardrobe}}">
             <li>
