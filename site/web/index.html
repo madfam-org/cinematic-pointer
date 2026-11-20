@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="{{v:lang}}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{t:meta.title}}</title>
+    <meta name="description" content="{{t:meta.description}}" />
+    {{h:robots}}
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#e2502a" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#101c2e" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="alternate" hreflang="es" href="/" />
+    <link rel="alternate" hreflang="en" href="/en" />
+    <link
+      rel="preload"
+      href="/fonts/bowlby-one-400-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="preload" href="/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/landing.css" />
+    <script src="/landing.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">{{t:skip}}</a>
+
+    <header class="marquee">
+      <a class="marquee__name" href="{{v:home}}">Cinematic Pointer</a>
+      <nav class="marquee__nav" aria-label="{{t:nav.label}}">
+        <ul>
+          <li><a href="#planos">{{t:nav.shots}}</a></li>
+          <li><a href="#cartelera">{{t:nav.today}}</a></li>
+          <li><a href="#proximamente">{{t:nav.soon}}</a></li>
+          <li><a href="#taquilla">{{t:nav.box}}</a></li>
+        </ul>
+      </nav>
+      <a class="marquee__lang" href="{{v:otherHome}}" hreflang="{{v:other}}" lang="{{v:other}}"
+        >{{t:nav.other}}</a
+      >
+    </header>
+
+    <main id="main">
+      <section class="band band--hero" aria-labelledby="hero-title">
+        <div class="hero">
+          <h1 id="hero-title" class="lettering hero__title">
+            <span>{{t:hero.title.a}}</span> <span>{{t:hero.title.b}}</span>
+          </h1>
+
+          <figure class="lobby lobby--feature">
+            <div class="lobby__still">
+              <video
+                id="feature"
+                class="lobby__film"
+                src="/footage/enclii-landing-take.mp4"
+                poster="/footage/shot-2.webp"
+                width="960"
+                height="540"
+                preload="metadata"
+                muted
+                loop
+                playsinline
+                controls
+                aria-label="{{t:hero.film.label}}"
+              ></video>
+            </div>
+            <figcaption class="lobby__band">
+              <p class="lobby__presenta"><span>MADFAM</span> {{t:hero.card.presents}}</p>
+              <p class="lettering lobby__name">enclii.dev</p>
+              <p class="billing">{{t:hero.card.billing}}</p>
+              <div class="reel" data-reel hidden>
+                <button type="button" class="stub" data-reel-play>
+                  <span data-on>{{t:hero.film.pause}}</span
+                  ><span data-off hidden>{{t:hero.film.play}}</span>
+                </button>
+                <button type="button" class="stub" data-reel-sound>
+                  <span data-off>{{t:hero.film.sound}}</span
+                  ><span data-on hidden>{{t:hero.film.mute}}</span>
+                </button>
+              </div>
+            </figcaption>
+            <svg class="star" viewBox="0 0 120 160" aria-hidden="true" focusable="false">
+              <path
+                class="star__ink2"
+                d="M14 8v118l30-28 20 46 20-9-20-45h42z"
+                transform="translate(7 7)"
+              />
+              <path class="star__body" d="M14 8v118l30-28 20 46 20-9-20-45h42z" />
+            </svg>
+          </figure>
+
+          <div class="hero__copy">
+            <p class="lede">{{t:hero.lede}}</p>
+            <div class="ticket" role="group" aria-labelledby="ticket-label">
+              <p class="ticket__label" id="ticket-label">{{t:hero.ticket.label}}</p>
+              <code class="ticket__command" id="cmd-film"
+                >npm run produce -- --filter '^enclii\.' --recorder cinematic</code
+              >
+              <button type="button" class="stub stub--primary" data-copy="cmd-film">
+                <span data-idle>{{t:copy.idle}}</span><span data-done hidden>{{t:copy.done}}</span>
+              </button>
+              <p class="ticket__note">{{t:hero.ticket.note}}</p>
+            </div>
+            <p class="hero__truth">{{t:hero.truth}}</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="band band--shots" id="planos" aria-labelledby="shots-title">
+        <div class="wrap">
+          <div class="band__head">
+            <h2 id="shots-title" class="lettering">{{t:shots.title}}</h2>
+            <p>{{t:shots.intro}}</p>
+          </div>
+          <ol class="case">
+            <li class="lobby lobby--shot" data-shot data-from="0" data-to="2.2">
+              <div class="lobby__still">
+                <img
+                  src="/footage/shot-1.webp"
+                  width="960"
+                  height="540"
+                  alt="{{t:shots.1.alt}}"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <button type="button" class="stub lobby__play" hidden>{{t:shots.play}} 1</button>
+              </div>
+              <div class="lobby__band">
+                <p class="lobby__no">{{t:shots.no}} 1 <span>2.2 s</span></p>
+                <h3 class="lettering">{{t:shots.1.name}}</h3>
+                <p>{{t:shots.1.text}}</p>
+              </div>
+            </li>
+            <li class="lobby lobby--shot" data-shot data-from="2.2" data-to="5.4">
+              <div class="lobby__still">
+                <img
+                  src="/footage/shot-2.webp"
+                  width="960"
+                  height="540"
+                  alt="{{t:shots.2.alt}}"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <button type="button" class="stub lobby__play" hidden>{{t:shots.play}} 2</button>
+              </div>
+              <div class="lobby__band">
+                <p class="lobby__no">{{t:shots.no}} 2 <span>3.2 s</span></p>
+                <h3 class="lettering">{{t:shots.2.name}}</h3>
+                <p>{{t:shots.2.text}}</p>
+              </div>
+            </li>
+            <li class="lobby lobby--shot" data-shot data-from="5.4" data-to="11.4">
+              <div class="lobby__still">
+                <img
+                  src="/footage/shot-3.webp"
+                  width="960"
+                  height="540"
+                  alt="{{t:shots.3.alt}}"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <button type="button" class="stub lobby__play" hidden>{{t:shots.play}} 3</button>
+              </div>
+              <div class="lobby__band">
+                <p class="lobby__no">{{t:shots.no}} 3 <span>{{t:shots.3.time}}</span></p>
+                <h3 class="lettering">{{t:shots.3.name}}</h3>
+                <p>{{t:shots.3.text}}</p>
+              </div>
+            </li>
+            <li class="lobby lobby--shot" data-shot data-from="11.4" data-to="13.8">
+              <div class="lobby__still">
+                <img
+                  src="/footage/shot-4.webp"
+                  width="960"
+                  height="540"
+                  alt="{{t:shots.4.alt}}"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <button type="button" class="stub lobby__play" hidden>{{t:shots.play}} 4</button>
+              </div>
+              <div class="lobby__band">
+                <p class="lobby__no">{{t:shots.no}} 4 <span>2.4 s</span></p>
+                <h3 class="lettering">{{t:shots.4.name}}</h3>
+                <p>{{t:shots.4.text}}</p>
+              </div>
+            </li>
+            <li class="lobby lobby--shot" data-shot data-from="13.8" data-to="16.4">
+              <div class="lobby__still">
+                <img
+                  src="/footage/shot-5.webp"
+                  width="960"
+                  height="540"
+                  alt="{{t:shots.5.alt}}"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <button type="button" class="stub lobby__play" hidden>{{t:shots.play}} 5</button>
+              </div>
+              <div class="lobby__band">
+                <p class="lobby__no">{{t:shots.no}} 5 <span>2.6 s</span></p>
+                <h3 class="lettering">{{t:shots.5.name}}</h3>
+                <p>{{t:shots.5.text}}</p>
+              </div>
+            </li>
+          </ol>
+          <p class="band__foot">{{t:shots.foot}}</p>
+        </div>
+      </section>
+
+      <section class="band band--today" id="cartelera" aria-labelledby="today-title">
+        <div class="wrap">
+          <div class="band__head">
+            <h2 id="today-title" class="lettering">{{t:today.title}}</h2>
+            <p>{{t:today.intro}}</p>
+          </div>
+          <dl class="bill">
+            <div class="bill__row">
+              <dt>{{t:today.cinematic.name}}</dt>
+              <dd>
+                <p>{{t:today.cinematic.text}}</p>
+                <code>produce --recorder cinematic</code>
+              </dd>
+            </div>
+            <div class="bill__row">
+              <dt>{{t:today.stepped.name}}</dt>
+              <dd>
+                <p>{{t:today.stepped.text}}</p>
+                <code>produce</code>
+              </dd>
+            </div>
+            <div class="bill__row">
+              <dt>{{t:today.realtime.name}}</dt>
+              <dd>
+                <p>{{t:today.realtime.text}}</p>
+                <code>produce --recorder realtime</code>
+              </dd>
+            </div>
+            <div class="bill__row">
+              <dt>{{t:today.capture.name}}</dt>
+              <dd>
+                <p>{{t:today.capture.text}}</p>
+                <code>capture page &lt;url&gt;</code>
+              </dd>
+            </div>
+            <div class="bill__row">
+              <dt>{{t:today.export.name}}</dt>
+              <dd>
+                <p>{{t:today.export.text}}</p>
+                <code>export &lt;video&gt; --formats mp4,webm --aspects 16:9,9:16</code>
+                <ul class="frames" aria-label="{{t:today.export.frames}}">
+                  <li class="frames__f frames__f--16x9"><span>16:9</span></li>
+                  <li class="frames__f frames__f--9x16"><span>9:16</span></li>
+                  <li class="frames__f frames__f--1x1"><span>1:1</span></li>
+                  <li class="frames__f frames__f--4x5"><span>4:5</span></li>
+                  <li class="frames__f frames__f--4x3"><span>4:3</span></li>
+                  <li class="frames__f frames__f--21x9"><span>21:9</span></li>
+                </ul>
+                <p class="bill__fine">{{t:today.export.fine}}</p>
+              </dd>
+            </div>
+            <div class="bill__row">
+              <dt>{{t:today.tour.name}}</dt>
+              <dd>
+                <p>{{t:today.tour.text}}</p>
+                <code>tour</code>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="band band--soon" id="proximamente" aria-labelledby="soon-title">
+        <div class="wrap soon">
+          <div class="soon__copy">
+            <h2 id="soon-title" class="lettering">{{t:soon.title}}</h2>
+            <p class="stamp">{{t:soon.stamp}}</p>
+            <p>{{t:soon.text}}</p>
+            <p>{{t:soon.personas}}</p>
+          </div>
+          <ul class="wardrobe" aria-label="{{t:soon.wardrobe}}">
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M6 3v16l4.2-3.8 2.7 6.2 2.7-1.2-2.7-6.1H18z" />
+              </svg>
+              <span>{{t:soon.o.arrow}}</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M9 13V4.6a1.6 1.6 0 0 1 3.2 0V11" />
+                <path d="M12.2 10.2a1.5 1.5 0 0 1 3 0V12" />
+                <path
+                  d="M15.2 11.2a1.5 1.5 0 0 1 3 0v4.3a5.5 5.5 0 0 1-5.5 5.5h-1.4a5 5 0 0 1-4.1-2.2l-2.6-3.9a1.5 1.5 0 0 1 2.4-1.8L9 15.5"
+                />
+              </svg>
+              <span>{{t:soon.o.hand}}</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M10 10l4.4 11 1.7-4.9L21 14.4z" />
+                <path d="M7.6 2.5l.8 3M2.5 7.6l3 .8M3.8 13.2l2.3-1.5M13.2 3.8l-1.5 2.3" />
+              </svg>
+              <span>{{t:soon.o.press}}</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  d="M8 3h2.4A1.6 1.6 0 0 1 12 4.6 1.6 1.6 0 0 1 13.6 3H16M8 21h2.4a1.6 1.6 0 0 0 1.6-1.6 1.6 1.6 0 0 0 1.6 1.6H16M12 4.6v14.8M10 12h4"
+                />
+              </svg>
+              <span>{{t:soon.o.ibeam}}</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  d="M6 3h12M6 21h12M7.5 3v3.6L12 12l-4.5 5.4V21M16.5 3v3.6L12 12l4.5 5.4V21M9.8 18.5h4.4"
+                />
+              </svg>
+              <span>{{t:soon.o.hourglass}}</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  d="M12 3v18M3 12h18M9.2 5.8L12 3l2.8 2.8M9.2 18.2L12 21l2.8-2.8M5.8 9.2L3 12l2.8 2.8M18.2 9.2L21 12l-2.8 2.8"
+                />
+              </svg>
+              <span>{{t:soon.o.move}}</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="6.5" />
+                <path d="M12 2v5M12 17v5M2 12h5M17 12h5" />
+              </svg>
+              <span>{{t:soon.o.crosshair}}</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"
+                />
+                <circle cx="12" cy="12" r="1.6" />
+              </svg>
+              <span>{{t:soon.o.focus}}</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="band band--box" id="taquilla" aria-labelledby="box-title">
+        <div class="wrap">
+          <div class="band__head">
+            <h2 id="box-title" class="lettering">{{t:box.title}}</h2>
+            <p>{{t:box.intro}}</p>
+          </div>
+          <ol class="steps">
+            <li class="ticket">
+              <h3>{{t:box.1.name}}</h3>
+              <p>{{t:box.1.text}}</p>
+              <code class="ticket__command" id="cmd-setup"
+                >git clone https://github.com/madfam-org/cinematic-pointer.git &amp;&amp; cd
+                cinematic-pointer &amp;&amp; npm install &amp;&amp; npx playwright install
+                chromium</code
+              >
+              <button type="button" class="stub" data-copy="cmd-setup">
+                <span data-idle>{{t:copy.idle}}</span><span data-done hidden>{{t:copy.done}}</span>
+              </button>
+            </li>
+            <li class="ticket">
+              <h3>{{t:box.2.name}}</h3>
+              <p>{{t:box.2.text.a}} {{v:products}} {{t:box.2.text.b}}</p>
+              <code class="ticket__command" id="cmd-list">npm run produce -- --dry-run</code>
+              <button type="button" class="stub" data-copy="cmd-list">
+                <span data-idle>{{t:copy.idle}}</span><span data-done hidden>{{t:copy.done}}</span>
+              </button>
+            </li>
+            <li class="ticket">
+              <h3>{{t:box.3.name}}</h3>
+              <p>{{t:box.3.text}}</p>
+              <code class="ticket__command" id="cmd-film-2"
+                >npm run produce -- --filter '^enclii\.' --recorder cinematic</code
+              >
+              <button type="button" class="stub" data-copy="cmd-film-2">
+                <span data-idle>{{t:copy.idle}}</span><span data-done hidden>{{t:copy.done}}</span>
+              </button>
+            </li>
+          </ol>
+          <div class="house">
+            <p>{{t:box.rules}}</p>
+            <p>{{t:box.image}} <code>ghcr.io/madfam-org/cinematic-pointer</code></p>
+            <p>
+              <a
+                class="stub stub--link"
+                href="https://github.com/madfam-org/cinematic-pointer"
+                rel="noopener"
+                >{{t:box.repo}}</a
+              >
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <p class="quiet" role="status" data-status data-copied="{{t:copy.announce}}"></p>
+
+    <footer class="foot">
+      <p class="foot__name">Cinematic Pointer</p>
+      <p>{{t:foot.licence}}</p>
+      <p>{{t:foot.quiet}}</p>
+      <p>
+        <a href="https://github.com/madfam-org/cinematic-pointer" rel="noopener"
+          >{{t:foot.source}}</a
+        >
+        <a href="{{v:otherHome}}" hreflang="{{v:other}}" lang="{{v:other}}">{{t:nav.other}}</a>
+      </p>
+    </footer>
+  </body>
+</html>

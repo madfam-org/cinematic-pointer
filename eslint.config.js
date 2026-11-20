@@ -137,6 +137,8 @@ export default [
       '*.config.js',
       '*.config.ts',
       'playwright.config.ts',
+      // The landing: plain browser and Node modules, checked by `node --test site/server/test`.
+      'site/',
     ],
   },
 ];

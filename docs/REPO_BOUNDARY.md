@@ -1,6 +1,6 @@
 # Repository boundary
 
-> Last Updated: 2026-11-17
+> Last Updated: 2026-11-20
 
 cinematic-pointer is a **public** repository in the `madfam-org` organisation. It owns the journey
 replayer, the cursor overlay, the post-production pipeline and the catalog of trailer journeys for
@@ -25,6 +25,11 @@ Never put here:
 - supplier, client or staff identities, or people's names beyond the public maintainer handles;
 - rendered video, raw recordings or event logs (`artifacts/`, `exports/` are git-ignored; published
   trailers live with the product they belong to, not in this repository).
+
+**One exception (owner permission, 2026-11-19).** The landing ships a small set of stills and one short
+clip of takes of MADFAM's own public pages, under `site/web/footage/`, each listed with its source in
+`site/web/footage/SOURCE.json`. Nothing else rendered is committed, and footage of a further page needs
+the owner's word.
 
 Enclii owns routine deployment, observability and secret intake. Record missing platform capabilities
 privately; do not add a raw production-access fallback. Licensing, governance, naming, visibility and

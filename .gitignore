@@ -22,6 +22,8 @@ captures/
 *.webm
 *.mov
 *.avi
+# The landing's footage is the one exception (docs/REPO_BOUNDARY.md).
+!site/web/footage/*.mp4
 
 # Logs
 logs/

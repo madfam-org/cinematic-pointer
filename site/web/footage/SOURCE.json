@@ -1,0 +1,22 @@
+{
+  "what": "Stills and one clip of a real cinematic take, shipped on the landing by the owner's permission (2026-11-19). The only recordings this repository carries; see docs/REPO_BOUNDARY.md.",
+  "take": {
+    "page": "https://enclii.dev/",
+    "filmed": "2026-11-18",
+    "command": "npm run produce -- --filter '^enclii\\.' --recorder cinematic --draft --viewport 1280x720 --aspects 16:9",
+    "quality": "draft (one picture per frame, no motion blur)",
+    "seconds": 16.4,
+    "fps": 24,
+    "width": 1280,
+    "height": 720,
+    "sha256": "4456c8ded293c43542a4f912b5896abd28eebb13e552734a98ce976c79ad6650"
+  },
+  "files": {
+    "enclii-landing-take.mp4": "The whole take, scaled to 960x540 (H.264 CRF 27, AAC 96 kb/s) with FFmpeg.",
+    "shot-1.webp": "Frame at 1.2 s (title card), 960x540.",
+    "shot-2.webp": "Frame at 4.4 s (push-in on the headline), 960x540.",
+    "shot-3.webp": "Frame at 9.3 s (montage of sections), 960x540.",
+    "shot-4.webp": "Frame at 11.6 s (close on the call to action), 960x540.",
+    "shot-5.webp": "Frame at 15.2 s (end card), 960x540."
+  }
+}

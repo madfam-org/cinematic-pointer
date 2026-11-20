@@ -95,3 +95,21 @@ jobs:
           npm run build
           test -s dist/cli.js
           echo "build: dist/cli.js present OK"
+
+  landing:
+    name: Landing server and deployment contract
+    runs-on: ${{ (vars.ARC_BOOTSTRAP_COMPLETE == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && 'madfam-runners-blue' || 'ubuntu-latest' }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Hosts, headers, both languages, byte ranges, no third-party request, deploy files
+        run: |
+          set -euo pipefail
+          node --test --test-reporter=tap site/server/test/*.test.mjs | tee landing-tests.tap
+          grep -Eq '^# pass [1-9]' landing-tests.tap || { echo "landing: read nothing (0 tests)"; exit 1; }
+          grep -q '^# fail 0$' landing-tests.tap

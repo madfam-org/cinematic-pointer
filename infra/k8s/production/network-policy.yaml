@@ -1,0 +1,67 @@
+# Default deny, then exactly:
+#   ingress: the app (8000) from the Cloudflare tunnel namespace only; metrics (9090) from monitoring only;
+#   egress:  DNS only. The landing makes no outbound call (no Janua, no database, no analytics).
+# One selector per peer entry: a combined namespaceSelector and podSelector is easy to get wrong.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-tunnel-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: cinematic-pointer-landing
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cloudflare-tunnel
+      ports:
+        - protocol: TCP
+          port: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-metrics-scrape
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: cinematic-pointer-landing
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9090
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: cinematic-pointer-landing
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

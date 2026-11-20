@@ -1,6 +1,6 @@
 # Cinematic Pointer Agent Operating Guide
 
-> Last Updated: 2026-11-18
+> Last Updated: 2026-11-20
 
 <!-- MADFAM-AGENTS-CANONICAL v1 -->
 
@@ -27,8 +27,8 @@ redirect and should not become the source of truth again.
 
 Cinematic Pointer replays a scripted journey in a real browser, records it with a cursor overlay, and
 edits the recording into a trailer. Inside MADFAM it produces the trailers for the public pages of
-MADFAM's products and their tiers (SKUs). It is a command-line tool; nothing in this repository is
-deployed or served.
+MADFAM's products and their tiers (SKUs). It is a command-line tool. The one thing deployed from this
+repository is its landing at `trailer.madfam.io` (see [The landing](#the-landing)).
 
 ## Boundary
 
@@ -37,6 +37,27 @@ journey, a document or a fixture. The short form: public, signed-out pages of MA
 no secrets, no node identity, no client hosts, no hand-typed prices, no committed recordings. The canonical
 policy is the MADFAM repo-boundary contract, kept in MADFAM's private ops repository. Licensing,
 visibility, naming and publishing rulings belong to the owner: prepare them, never take them.
+
+## The landing
+
+`site/` is the landing served at `https://trailer.madfam.io` (owner direction, 2026-11-19): a
+dependency-free Node server (`site/server/`) and one page in Spanish and English (`site/web/`). It is
+deployed through Enclii, dispatch-only; [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) is the contract.
+
+- Host names sit one level under `madfam.io` and are never nested. A later surface takes a hyphenated
+  name (`trailer-api.madfam.io`, `trailer-admin.madfam.io`); only the landing exists, and each new name
+  needs the owner's word.
+- The page is unindexed until the owner says otherwise (`INDEXABLE` in `site/server/config.mjs`).
+- [`PRODUCT.md`](./PRODUCT.md) and [`DESIGN.md`](./DESIGN.md) are the product and visual records. Every
+  change to the page goes through the impeccable design flow, with its telemetry off, and keeps the
+  direction recorded in `.impeccable/surfaces/`.
+- The page states only what the tool does today. Work in progress is labelled as such, never shown as
+  shipped. No invented metric, no price, no client name.
+- `site/web/footage/` holds stills and one clip of a real take, by the owner's permission. It is the
+  one exception to "no committed recordings"; adding footage of another page needs the owner's word
+  and a line in `site/web/footage/SOURCE.json`.
+- Checks: `node --test site/server/test/*.test.mjs` (CI runs it). Preview: `node site/server/dev.mjs`.
+- `site/Dockerfile` is the landing's image. The `Dockerfile` at the root is the command-line image.
 
 ## Licence
 
@@ -163,6 +184,7 @@ never reported as a clean one.
 | Typecheck, lint, format            | yes           | `npm run typecheck && npm run lint && npm run format:check`       |
 | Catalog journeys match the catalog | yes           | `npm run catalog:check`                                           |
 | Unit tests                         | yes           | `npm test`                                                        |
+| Landing server and deploy contract | yes           | `node --test site/server/test/*.test.mjs`                         |
 | End-to-end (Playwright)            | **no, local** | `npm run test:e2e` (needs browsers)                               |
 | A real recording and render        | **no, local** | `npm run produce -- --filter <id>` (needs browsers and FFmpeg 6+) |
 

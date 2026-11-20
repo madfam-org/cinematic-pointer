@@ -31,6 +31,12 @@ click or type. See [`AGENTS.md`](./AGENTS.md) for the catalog rules.
 > **Boundary.** This is a public repository: no secrets, no private hosts, no client names and no
 > recordings are committed here. See [`docs/REPO_BOUNDARY.md`](./docs/REPO_BOUNDARY.md).
 
+## Landing
+
+The tool's landing is served at [trailer.madfam.io](https://trailer.madfam.io) from `site/` (Spanish at
+`/`, English at `/en`). It shows a real take and says what the tool does today. See
+[`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md).
+
 ## Quick Start
 
 ### Installation
