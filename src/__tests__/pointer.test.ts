@@ -184,7 +184,7 @@ describe('the pointer in a screenplay', () => {
       name: 'Example',
       persona: PERSONAS.guide,
     });
-    expect(wide.pointer!.size).toBe(66);
+    expect(wide.pointer!.size).toBe(96);
     const html = buildStageHtml(page, wide);
     expect(html).toContain('function pointerAt(track, t)');
     for (const id of OUTFIT_IDS) expect(html).toContain(`data-outfit="${id}"`);
