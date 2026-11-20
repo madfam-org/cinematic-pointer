@@ -9,6 +9,9 @@
  * grain is drawn from a generator seeded by the frame time, so two renders of the same screenplay
  * give the same frames.
  */
+import { POINTER_MATH_JS } from '../pointer/motion';
+import { OUTFIT_IDS, OUTFITS, outfitSvg } from '../pointer/outfits';
+
 import { PageCapture, Screenplay } from './types';
 
 export interface StageOptions {
@@ -25,6 +28,7 @@ function escapeHtml(text: string): string {
 /** The script that runs inside the stage. Kept as plain ES5-style text: no bundler, no imports. */
 const STAGE_SCRIPT = `
 (function () {
+${POINTER_MATH_JS}
   var data = window.__STAGE_DATA;
   var play = data.screenplay, cap = data.capture, opts = data.options;
   var W = play.frame.w, H = play.frame.h;
@@ -65,6 +69,40 @@ const STAGE_SCRIPT = `
     return shots[shots.length - 1];
   }
 
+  // The pointer lives in the page's own 3D space, raised off its surface: it tilts with the page,
+  // shifts against it as the camera moves, and drops a shadow whose offset follows the tilt.
+  var pointer = document.getElementById('pointer');
+  var shadow = document.getElementById('pointer-shadow');
+  var rings = document.getElementById('rings');
+  var LIFT = 22, RING = 2.6;
+  function drawPointer(time, planeTransform, s, light) {
+    var track = play.pointer, pose = pointerAt(track, time);
+    var unit = 1 / s;
+    var at = planeTransform + ' translate3d(' + pose.x.toFixed(2) + 'px,' + pose.y.toFixed(2) + 'px,';
+    var size = ' scale(' + (unit * pose.squash).toFixed(5) + ')';
+    pointer.style.transform = at + (LIFT * unit * pose.squash).toFixed(3) + 'px)' + size;
+    shadow.style.transform = at + (1 * unit).toFixed(3) + 'px)' + size;
+    pointer.style.opacity = pose.opacity.toFixed(4);
+    pointer.style.filter = 'brightness(' + light.toFixed(4) + ')';
+    shadow.style.opacity = (pose.opacity * 0.45).toFixed(4);
+    var worn = pointer.children;
+    for (var i = 0; i < worn.length; i++) {
+      var on = worn[i].getAttribute('data-outfit') === pose.outfit;
+      worn[i].style.display = on ? 'block' : 'none';
+      shadow.children[i].style.display = on ? 'block' : 'none';
+    }
+    var html = '';
+    for (var r = 0; r < pose.rings.length; r++) {
+      var ring = pose.rings[r], grow = 1 - Math.pow(1 - ring.p, 3);
+      var d = track.size * RING * grow * unit;
+      html += '<div class="ring" style="left:' + (ring.x - d / 2).toFixed(2) + 'px;top:' +
+        (ring.y - d / 2).toFixed(2) + 'px;width:' + d.toFixed(2) + 'px;height:' + d.toFixed(2) +
+        'px;border-width:' + (3 * unit).toFixed(3) + 'px;opacity:' + (1 - ring.p).toFixed(4) + '"></div>';
+    }
+    rings.innerHTML = html;
+    rings.style.transform = planeTransform + ' translate3d(0,0,' + (2 * unit).toFixed(3) + 'px)';
+  }
+
   function draw(t) {
     var time = Math.min(Math.max(t, 0), play.duration);
     var shot = shotAt(time);
@@ -80,6 +118,7 @@ const STAGE_SCRIPT = `
       'translate(' + W / 2 + 'px,' + H / 2 + 'px) rotateX(' + rx + 'deg) rotateY(' + ry +
       'deg) rotateZ(' + rz + 'deg) scale(' + s + ') translate(' + -cx + 'px,' + -cy + 'px)';
     plane.style.filter = 'blur(' + (blur / s).toFixed(3) + 'px) brightness(' + light.toFixed(4) + ')';
+    if (play.pointer) drawPointer(time, plane.style.transform, s, light);
 
     // A band of light that crosses the page once per shot.
     sheen.style.backgroundPosition = (-60 + 220 * p).toFixed(2) + '% 0';
@@ -141,6 +180,18 @@ export function buildStageHtml(
   const bar = options.letterbox ? Math.max(0, Math.round((h - w / options.letterbox) / 2)) : 0;
   const data = JSON.stringify({ screenplay, capture, options: { grain } }).replace(/</g, '\\u003c');
   const titleSize = Math.round(w * 0.058);
+  const track = screenplay.pointer;
+  const size = track?.size ?? 0;
+  // Every outfit is in the page, offset so its hotspot sits on the pointer's origin.
+  const wardrobe = OUTFIT_IDS.map((id) => {
+    const hot = OUTFITS[id].hotspot;
+    const left = -((hot.x / 32) * size).toFixed(2);
+    const top = -((hot.y / 32) * size).toFixed(2);
+    return `<div data-outfit="${id}" style="position:absolute;left:${left}px;top:${top}px;display:none">${outfitSvg(id, size)}</div>`;
+  }).join('');
+  const cast = track
+    ? `<div id="rings"></div><div id="pointer-shadow">${wardrobe}</div><div id="pointer">${wardrobe}</div>`
+    : '';
 
   return `<!doctype html>
 <html lang="en">
@@ -156,6 +207,13 @@ export function buildStageHtml(
   #plane { position: absolute; left: 0; top: 0; width: ${capture.width}px; height: ${capture.height}px;
     transform-origin: 0 0; background: ${capture.background}; will-change: transform, filter;
     box-shadow: 0 60px 160px rgba(0, 0, 0, 0.75); }
+  #pointer, #pointer-shadow, #rings { position: absolute; left: 0; top: 0; width: 0; height: 0;
+    transform-origin: 0 0; pointer-events: none; }
+  #pointer { --cp-ink: ${escapeHtml(track?.ink ?? '#000')}; --cp-fill: ${escapeHtml(track?.fill ?? '#fff')};
+    will-change: transform; }
+  #pointer-shadow { --cp-ink: #000; --cp-fill: #000; filter: blur(${Math.max(2, Math.round(size / 9))}px); }
+  .ring { position: absolute; box-sizing: border-box; border-radius: 50%;
+    border: 0 solid ${escapeHtml(track?.ring ?? '#fff')}; }
   #sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; opacity: 0.55;
     background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.55) 50%, transparent 62%);
     background-size: 220% 100%; background-repeat: no-repeat; }
@@ -176,7 +234,7 @@ export function buildStageHtml(
 </head>
 <body>
 <div id="world">
-  <div id="rig"><img id="plane" src="${escapeHtml(capture.image)}" alt=""></div>
+  <div id="rig"><img id="plane" src="${escapeHtml(capture.image)}" alt="">${cast}</div>
   <div id="sheen"></div>
   <div id="vignette"></div>
   <canvas id="grain" width="${Math.round(w / 3)}" height="${Math.round(h / 3)}"></canvas>

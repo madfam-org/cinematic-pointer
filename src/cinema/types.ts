@@ -5,6 +5,8 @@
  * shots over that still. Both are plain data, so a trailer is reproducible from its inputs.
  */
 
+import { PointerTrack } from '../pointer/motion';
+
 export type LandmarkKind = 'h1' | 'h2' | 'cta';
 
 export interface Landmark {
@@ -72,4 +74,6 @@ export interface Screenplay {
   frame: { w: number; h: number };
   duration: number;
   shots: Shot[];
+  /** The pointer's part, when the trailer has a protagonist. */
+  pointer?: PointerTrack;
 }

@@ -19,6 +19,7 @@ import { addScore, hasAudio } from '../cinema/sound';
 import { buildStageHtml } from '../cinema/stage';
 import { BrowserType } from '../drivers/playwright';
 import { executeJourneyFile } from '../executor';
+import { loadPersona } from '../pointer/persona';
 import {
   checkFFmpegAvailable,
   hasFFmpegFilter,
@@ -47,6 +48,10 @@ export interface ProduceOptions {
   score?: boolean;
   /** `--draft` renders a cinematic take without motion blur, for a constrained machine. */
   draft?: boolean;
+  /** Whose hand the pointer is in a cinematic take: a built-in name or a `.json` file. */
+  persona?: string;
+  /** `--no-pointer` films a cinematic take with no pointer in it. */
+  pointer?: boolean;
   /** `WxH`. Overrides every journey's viewport, e.g. to record smaller on a constrained machine. */
   viewport?: string;
 }
@@ -135,11 +140,17 @@ async function produceOne(
       outDir: runDir,
       browserType: options.browser as BrowserType,
     });
+    const persona =
+      options.pointer === false ? undefined : await loadPersona(options.persona ?? 'guide');
     const screenplay = direct(capture, {
       frame,
       name: trailer.name,
       tagline: new URL(journey.start.url).host,
+      persona,
     });
+    result.pointer = persona
+      ? `${persona.id}: ${screenplay.pointer?.presses.length ?? 0} press(es)`
+      : 'none';
     const stagePath = path.join(runDir, 'stage.html');
     await writeFile(stagePath, buildStageHtml(capture, screenplay, { letterbox: 2.39 }));
     await writeFile(
@@ -245,6 +256,10 @@ export async function produce(options: ProduceOptions): Promise<ProduceResults> 
     throw new Error(`Unknown recorder "${recorder}". Use cinematic, stepped or realtime.`);
   }
   options = { ...options, recorder };
+  // A bad persona should stop the run before anything is filmed.
+  if (recorder === 'cinematic' && options.pointer !== false) {
+    await loadPersona(options.persona ?? 'guide');
+  }
   const trailers = selectTrailers(buildTrailers(catalog), options.filter);
 
   const results: ProduceResults = {

@@ -5,6 +5,9 @@
  * of the sections, a close on the call to action, and an end card. Pure: the same capture and options
  * give the same screenplay, byte for byte.
  */
+import { perform, Subject } from '../pointer/perform';
+import { Persona } from '../pointer/persona';
+
 import { Camera, Landmark, PageCapture, Screenplay, Shot } from './types';
 
 export interface DirectorOptions {
@@ -15,6 +18,8 @@ export interface DirectorOptions {
   tagline?: string;
   /** How many sections the montage visits at most. */
   montage?: number;
+  /** Whose hand the pointer is. Omit for a trailer with no pointer. */
+  persona?: Persona;
 }
 
 const TITLE_SECONDS = 2.2;
@@ -79,6 +84,14 @@ export function direct(capture: PageCapture, options: DirectorOptions): Screenpl
   const headline = capture.landmarks.find((m) => m.kind === 'h1');
   const hero = headline ? centre(headline) : { x: capture.width / 2, y: viewH * 0.4 };
   const shots: Shot[] = [];
+  const subjects: Record<string, Subject> = {};
+  const box = (kind: Subject['kind'], m: Landmark): Subject => ({
+    kind,
+    x: m.x,
+    y: m.y,
+    w: m.w,
+    h: m.h,
+  });
   let t = 0;
 
   const push = (shot: Omit<Shot, 'start'>) => {
@@ -106,6 +119,7 @@ export function direct(capture: PageCapture, options: DirectorOptions): Screenpl
   });
 
   // 2. Hero: start wide and tilted, settle on the headline.
+  if (headline) subjects.hero = box('headline', headline);
   push({
     name: 'hero',
     duration: HERO_SECONDS,
@@ -130,6 +144,7 @@ export function direct(capture: PageCapture, options: DirectorOptions): Screenpl
     const at = centre(mark);
     const side = index % 2 === 0 ? 1 : -1;
     const y = at.y + (frame.h / montageScale) * 0.22;
+    subjects[`montage-${index + 1}`] = box('section', mark);
     push({
       name: `montage-${index + 1}`,
       duration: MONTAGE_SECONDS,
@@ -158,6 +173,7 @@ export function direct(capture: PageCapture, options: DirectorOptions): Screenpl
   // 4. Close: the last call to action, or the foot of the page, straight on.
   const actions = capture.landmarks.filter((m) => m.kind === 'cta');
   const last = actions.length > 0 ? centre(actions[actions.length - 1]) : null;
+  if (actions.length > 0) subjects.close = box('action', actions[actions.length - 1]);
   const closeAt = last ?? { x: capture.width / 2, y: capture.height - viewH * 0.5 };
   push({
     name: 'close',
@@ -181,5 +197,12 @@ export function direct(capture: PageCapture, options: DirectorOptions): Screenpl
     fadeOut: 0.8,
   });
 
-  return { frame, duration: Math.round(t * 1000) / 1000, shots };
+  const screenplay: Screenplay = { frame, duration: Math.round(t * 1000) / 1000, shots };
+  if (options.persona) {
+    screenplay.pointer = perform(shots, subjects, options.persona, {
+      frameWidth: frame.w,
+      viewWidth: capture.width,
+    });
+  }
+  return screenplay;
 }

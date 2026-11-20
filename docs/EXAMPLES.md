@@ -369,3 +369,40 @@ cinematic-pointer run journey.json --headed --no-recording
 ```bash
 cinematic-pointer doctor --json
 ```
+
+## The pointer as the lead
+
+A cinematic take has a pointer in it by default. It lives in the page's 3D space (it tilts with the
+page and drops a shadow on it), enters each shot, reads the headline, visits each section and presses
+the call to action in the closing shot. It stays off the title and end cards.
+
+```bash
+# The default persona, "guide"
+cinematic-pointer produce --recorder cinematic --filter '^enclii\.'
+
+# A different user behind the hand
+cinematic-pointer produce --recorder cinematic --persona operator
+
+# Your own persona, or no pointer at all
+cinematic-pointer produce --recorder cinematic --persona personas/cashier.json
+cinematic-pointer produce --recorder cinematic --no-pointer
+```
+
+A persona decides how the pointer moves and what it wears in each state:
+
+| Persona    | Who                                 | Manner                                    |
+| ---------- | ----------------------------------- | ----------------------------------------- |
+| `guide`    | Showing a friend around             | Calm, reads headings                      |
+| `operator` | Runs the floor and knows the screen | Fast, straight, presses at once           |
+| `analyst`  | Answers for the numbers             | Slow, reads, waits before committing      |
+| `explorer` | New here and curious                | Wide arcs, lingers                        |
+| `maker`    | Designs and builds                  | Precise, frames the thing before touching |
+
+A persona file sets any of `pace` (0.5–2), `bow` (-0.4–0.4), `hesitation` (seconds, 0–1.5), `reads`,
+`size`, `ink`, `fill`, `ring` and a `wardrobe` that maps a state (`travel`, `hover`, `press`, `read`,
+`wait`, `drag`, `inspect`) to an outfit (`arrow`, `point`, `press`, `text`, `wait`, `move`, `inspect`,
+`frame`). Only `id` is required; the rest take the guide's values.
+
+Limits: the pointer appears in cinematic takes only. The `stepped` and `realtime` recorders and the
+estate tour do not use personas or outfits yet. The `wait` and `drag` states have outfits but no
+shot uses them yet.
