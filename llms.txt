@@ -16,7 +16,10 @@ command-line tool (TypeScript, Playwright, FFmpeg); nothing here is deployed.
 
 ## Where things are
 
-- `src/cli.ts`, `src/commands/` — commands: `run`, `cut`, `reframe`, `doctor`, `catalog`, `produce`.
+- `src/cli.ts`, `src/commands/` — commands: `run`, `cut`, `reframe`, `doctor`, `catalog`, `produce`, `capture page`, `export`, `tour`.
+- `src/cinema/` — page capture, the auto-director (screenplay, primary call to action) and the cinematic stage.
+- `src/pointer/` — the pointer as protagonist: outfits, personas, motion (`pointerAt`) and its part in a screenplay.
+- `src/recorders/` — `stepped` and stage (frame-by-frame) recorders.
 - `src/executor/`, `src/drivers/`, `src/overlay/` — journey replay and the cursor overlay.
 - `src/postprod/` — FFmpeg edit, captions, reframe, export.
 - `src/catalog/` — trailer catalog: products to journeys, batch results and exit rules.

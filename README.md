@@ -7,6 +7,7 @@ An automated system that replays preplanned user journeys on the web and produce
 - **Declarative Journey DSL** — Author flows in JSON with step-by-step actions
 - **Playwright-Based Execution** — Robust selectors, assertions, and retries
 - **Cinematic Cursor Overlay** — Trails, ripples, focus rings, and camera beats
+- **The Pointer as Protagonist** — In cinematic takes the pointer is the lead: personas (whose hand it is) and eight outfits drawn here, pressing the page's primary call to action
 - **FFmpeg Post-Production** — Zooms, pans, speed ramps, captions, and music
 - **Multi-Format Export** — MP4, WebM, HEVC, GIF, ProRes
 - **Multi-Aspect Exports** — 16:9, 1:1, 9:16, 4:3, 21:9
