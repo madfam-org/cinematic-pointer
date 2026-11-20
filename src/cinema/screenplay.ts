@@ -86,7 +86,7 @@ const TIE = 0.05;
  * those wins (a page puts its main action first). If any member was captured without a weight the
  * weights are not comparable, and the leftmost wins outright.
  */
-export function pickAction(capture: PageCapture): Landmark | null {
+export function pickAction(capture: Pick<PageCapture, 'landmarks'>): Landmark | null {
   const actions = capture.landmarks.filter((m) => m.kind === 'cta');
   if (actions.length === 0) return null;
   const low = actions.reduce((a, b) => (centre(b).y > centre(a).y ? b : a));

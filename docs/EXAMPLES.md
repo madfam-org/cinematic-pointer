@@ -403,6 +403,28 @@ A persona file sets any of `pace` (0.5–2), `bow` (-0.4–0.4), `hesitation` (s
 `wait`, `drag`, `inspect`) to an outfit (`arrow`, `point`, `press`, `text`, `wait`, `move`, `inspect`,
 `frame`). Only `id` is required; the rest take the guide's values.
 
-Limits: the pointer appears in cinematic takes only. The `stepped` and `realtime` recorders and the
-estate tour do not use personas or outfits yet. The `wait` and `drag` states have outfits but no
-shot uses them yet.
+Limits: the pointer appears in cinematic and stepped takes. The `realtime` recorder and the estate
+tour do not use personas or outfits yet. The `wait` and `drag` states have outfits but no shot uses
+them yet.
+
+## Live pages, frame-exact
+
+A stepped take films the live page, three.js scenes and canvas animations included, one frame at a
+time. The page's clock starts stopped at the same instant on every take, the page gets exactly two
+seconds of its own time to settle after loading, and then its clock advances one frame interval per
+picture. `requestAnimationFrame`, timers, `Date` and `performance.now` follow that clock; CSS
+animations and videos are set to it each frame. A slow or hot machine films the same pictures as a
+fast one.
+
+With a persona, the pointer plays over the live page: while the page holds still it reads the
+headline or a section heading, and in the last hold long enough for it, it presses the main button in
+view. The press is drawn, never clicked.
+
+```bash
+cinematic-pointer produce --recorder stepped --filter '^yantra4d\.' --persona maker
+```
+
+Limits: no motion blur in a stepped take. A page that draws from `Math.random`, or whose content
+arrives over the network after the settle, is not made identical between takes. Buttons inside fixed
+or sticky bars are never pressed, which on application pages can pass over a sticky toolbar's main
+button. Holds whose only headings are below `h2` have no pointer.
