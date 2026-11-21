@@ -15,21 +15,57 @@ import { spawn } from 'child_process';
 import { mkdir, rm } from 'fs/promises';
 import path from 'path';
 
-import { chromium, firefox, webkit } from 'playwright';
+import { chromium, firefox, Page, webkit } from 'playwright';
 
-import { LANDMARK_SCRIPT } from '../cinema/capture';
-import { Landmark } from '../cinema/types';
+import { readLandmarks } from '../cinema/capture';
 import { BrowserType } from '../drivers/playwright';
 import { drawLivePointer, mountLivePointer, planLivePointer } from '../pointer/live';
 import { PointerTrack } from '../pointer/motion';
 import { Persona } from '../pointer/persona';
 import { Journey } from '../types';
 
-import { installLiveTime, settle } from './livetime';
+import { checkDocument, explainGone, installLiveTime, markDocument, settle } from './livetime';
 import { buildScrollTimeline, frameCount, scrollAt } from './timeline';
 
 /** Page time a page runs after loading and before the first frame. */
 const SETTLE_SECONDS = 2;
+/** Real time the network gets after settling, for what the page's timers asked for. */
+const AFTER_SETTLE_LIMIT_MS = 5000;
+/** The network counts as quiet after this long with nothing in flight. */
+const QUIET_MS = 500;
+
+/**
+ * Count the page's requests from now on. `quiet()` resolves once none has been in flight for
+ * `QUIET_MS`, or after `limit` ms whatever happens. (Playwright's `networkidle` cannot be waited
+ * for twice: a document that reached it once reports it at once.)
+ */
+function watchNetwork(page: Page) {
+  const inFlight = new Set<unknown>();
+  let changed = Date.now();
+  const start = (r: unknown) => {
+    inFlight.add(r);
+    changed = Date.now();
+  };
+  const end = (r: unknown) => {
+    inFlight.delete(r);
+    changed = Date.now();
+  };
+  page.on('request', start);
+  page.on('requestfinished', end);
+  page.on('requestfailed', end);
+  return {
+    async quiet(limit: number) {
+      const until = Date.now() + limit;
+      while (Date.now() < until) {
+        if (inFlight.size === 0 && Date.now() - changed >= QUIET_MS) break;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      page.off('request', start);
+      page.off('requestfinished', end);
+      page.off('requestfailed', end);
+    },
+  };
+}
 
 export interface SteppedOptions {
   journey: Journey;
@@ -117,34 +153,50 @@ export async function recordStepped(options: SteppedOptions): Promise<SteppedRes
     await page.goto(journey.start.url, { waitUntil: 'load', timeout: 60000 });
     // Late content (fonts, lazy images) changes the page height; give the network a bounded chance.
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => undefined);
+    // A mark on this document: if the page replaces itself while it settles, the mark is gone.
+    await markDocument(page);
+    const network = watchNetwork(page);
     // Then the same amount of page time on every take, so the page's own motion starts alike.
-    const clock = await settle(page, SETTLE_SECONDS);
+    const clock = await settle(page, SETTLE_SECONDS, { fps });
+    // Timers only run while settling, so what they fetched may still be arriving; the page is
+    // measured after it has had a bounded chance to land.
+    await network.quiet(AFTER_SETTLE_LIMIT_MS);
 
-    const pageHeight = (await page.evaluate(
-      'Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0)',
-    )) as number;
-    const timeline = buildScrollTimeline(journey, pageHeight - journey.meta.viewport.h);
-    if (timeline.duration <= 0) {
-      throw new Error('The journey has no duration: nothing to record');
-    }
-
+    const { viewport } = journey.meta;
+    let pageHeight: number;
     let track: PointerTrack | undefined;
-    if (options.persona) {
-      const landmarks = (await page.evaluate(LANDMARK_SCRIPT)) as Landmark[];
-      track = planLivePointer(timeline, landmarks, {
-        viewport: journey.meta.viewport,
-        persona: options.persona,
-      });
-      await mountLivePointer(page, track);
+    let timeline: ReturnType<typeof buildScrollTimeline>;
+    try {
+      await checkDocument(page);
+      pageHeight = (await page.evaluate(
+        'Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0)',
+      )) as number;
+      timeline = buildScrollTimeline(journey, pageHeight - viewport.h);
+      if (timeline.duration <= 0) {
+        throw new Error('The journey has no duration: nothing to record');
+      }
+      if (options.persona) {
+        // Wholly on the page and in reading order: an off-canvas or screen-reader-only control
+        // is not something the pointer can be seen to attend to.
+        const landmarks = await readLandmarks(page, viewport.w, pageHeight);
+        track = planLivePointer(timeline, landmarks, { viewport, persona: options.persona });
+        await mountLivePointer(page, track);
+      }
+    } catch (error) {
+      throw explainGone(error);
     }
 
     const total = frameCount(timeline.duration, fps);
     for (let frame = 0; frame < total; frame++) {
       const t = frame / fps;
       const y = scrollAt(timeline, t);
-      await page.evaluate(`window.scrollTo({ top: ${y}, left: 0, behavior: 'instant' })`);
-      await clock.advanceTo(t);
-      if (track) await drawLivePointer(page, t);
+      try {
+        await page.evaluate(`window.scrollTo({ top: ${y}, left: 0, behavior: 'instant' })`);
+        await clock.advanceTo(t);
+        if (track) await drawLivePointer(page, t);
+      } catch (error) {
+        throw explainGone(error);
+      }
       await page.screenshot({
         path: path.join(framesDir, `${String(frame).padStart(6, '0')}.jpg`),
         type: 'jpeg',

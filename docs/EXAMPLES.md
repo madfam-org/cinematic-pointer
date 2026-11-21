@@ -412,9 +412,11 @@ them yet.
 A stepped take films the live page, three.js scenes and canvas animations included, one frame at a
 time. The page's clock starts stopped at the same instant on every take, the page gets exactly two
 seconds of its own time to settle after loading, and then its clock advances one frame interval per
-picture. `requestAnimationFrame`, timers, `Date` and `performance.now` follow that clock; CSS
-animations and videos are set to it each frame. A slow or hot machine films the same pictures as a
-fast one.
+picture. Timers, `Date` and `performance.now` follow that clock, and `requestAnimationFrame` runs
+exactly once per frame at the frame's own time. CSS and Web Animations and playing videos are set to
+it each frame, at their own playback rate; a video waiting to be clicked keeps its poster, and an
+animation the page holds stays held. A timer that throws is a warning, not a failed take. A slow or
+hot machine films the same pictures as a fast one.
 
 With a persona, the pointer plays over the live page: while the page holds still it reads the
 headline or a section heading, and in the last hold long enough for it, it presses the main button in
@@ -425,6 +427,8 @@ cinematic-pointer produce --recorder stepped --filter '^yantra4d\.' --persona ma
 ```
 
 Limits: no motion blur in a stepped take. A page that draws from `Math.random`, or whose content
-arrives over the network after the settle, is not made identical between takes. Buttons inside fixed
+arrives over the network after the settle, is not made identical between takes. Animation frames
+inside iframes keep Playwright's 16 ms grid. A page that navigates away by itself while it settles
+stops the take. Buttons inside fixed
 or sticky bars are never pressed, which on application pages can pass over a sticky toolbar's main
 button. Holds whose only headings are below `h2` have no pointer.

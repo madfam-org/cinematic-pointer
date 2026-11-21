@@ -77,7 +77,7 @@ export function pickMontage(capture: PageCapture, frameH: number, scale: number,
 }
 
 /** Weights closer than this are a tie. */
-const TIE = 0.05;
+export const TIE = 0.05;
 
 /**
  * The call to action the trailer closes on: the primary one of the page's last group. The last

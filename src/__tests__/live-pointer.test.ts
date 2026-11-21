@@ -1,6 +1,7 @@
 import { Landmark } from '../cinema/types';
 import { pointerAt } from '../pointer/motion';
-import { planLivePointer } from '../pointer/live';
+import { pickInView, planLivePointer, svgTree } from '../pointer/live';
+import { OUTFIT_IDS, outfitSvg } from '../pointer/outfits';
 import { PERSONAS } from '../pointer/persona';
 import { ScrollTimeline } from '../recorders/timeline';
 
@@ -80,10 +81,37 @@ describe('the pointer on a live page', () => {
     expect(pointerAt(track, 6).opacity).toBe(1);
   });
 
-  it('enters from outside the viewport', () => {
+  it('enters from outside the viewport of the hold it enters, wherever that is scrolled', () => {
     const track = plan();
-    const first = track.keys[0];
-    expect(Math.abs(first.x - 550)).toBeGreaterThan(viewport.w / 2);
+    const entrances = track.keys.filter((k) => k.cut);
+    expect(entrances).toHaveLength(3);
+    for (const k of entrances) {
+      const scroll = timeline.segments.find((s) => s.start === k.t)!.from;
+      const x = k.x;
+      const y = k.y - scroll;
+      const out = x > viewport.w || x < -track.size || y > viewport.h || y < -track.size;
+      expect(out).toBe(true);
+      // And it is drawn there, at full strength, the moment the hold starts: off screen.
+      const pose = pointerAt(track, k.t);
+      expect(pose.x).toBe(k.x);
+      expect(pose.y).toBe(k.y);
+    }
+  });
+
+  it('presses the hero primary, not a faint card button lower in the same view', () => {
+    const hold: ScrollTimeline = {
+      duration: 4,
+      segments: [{ start: 0, end: 4, from: 0, to: 0 }],
+    };
+    const marks = [
+      mark('h1', 120),
+      mark('cta', 300, 200, 0.8),
+      mark('cta', 520, 200, 0.12),
+      mark('cta', 520, 700, 0.1),
+    ];
+    const track = plan(PERSONAS.guide, marks, hold);
+    expect(track.presses).toHaveLength(1);
+    expect(pointerAt(track, track.presses[0])).toMatchObject({ x: 350, y: 330, outfit: 'press' });
   });
 
   it('presses in the last hold long enough for it, at the main button in that view', () => {
@@ -108,5 +136,51 @@ describe('the pointer on a live page', () => {
     expect(track.presses).toHaveLength(1);
     expect(track.presses[0]).toBeGreaterThan(7);
     expect(pointerAt(track, track.presses[0])).toMatchObject({ x: 450, y: 480, outfit: 'press' });
+  });
+});
+
+describe('the main call to action in one view', () => {
+  it('is the one that stands out most, wherever it sits', () => {
+    expect(pickInView([mark('cta', 500, 100, 0.2), mark('cta', 300, 900, 0.9)])).toMatchObject({
+      y: 300,
+      x: 900,
+    });
+  });
+
+  it('breaks a tie (within 0.05) by reading order: the higher row, then the leftmost', () => {
+    expect(pickInView([mark('cta', 500, 100, 0.8), mark('cta', 300, 900, 0.77)])).toMatchObject({
+      y: 300,
+    });
+    expect(pickInView([mark('cta', 300, 900, 0.8), mark('cta', 305, 100, 0.78)])).toMatchObject({
+      x: 100,
+    });
+  });
+
+  it('reads first when weights are missing, and is nothing when there is no button', () => {
+    expect(pickInView([mark('cta', 500, 100), mark('cta', 300, 900, 0.9)])).toMatchObject({
+      y: 300,
+    });
+    expect(pickInView([])).toBeNull();
+  });
+});
+
+describe('the outfits as data for the page', () => {
+  it('parses every outfit into one svg element with paths', () => {
+    for (const id of OUTFIT_IDS) {
+      const tree = svgTree(outfitSvg(id, 64));
+      expect(tree.tag).toBe('svg');
+      expect(tree.attrs).toMatchObject({ viewBox: '0 0 32 32', width: '64', 'data-outfit': id });
+      const tags = JSON.stringify(tree).match(/"tag":"(\w+)"/g);
+      expect(tags).toContain('"tag":"path"');
+    }
+    const press = svgTree(outfitSvg('press', 64));
+    expect(press.children[0]).toMatchObject({ tag: 'g', attrs: { transform: 'translate(0 2)' } });
+    expect(press.children[0].children[0].attrs.fill).toBe('var(--cp-fill)');
+  });
+
+  it('refuses markup it does not expect', () => {
+    expect(() => svgTree('<svg>text</svg>')).toThrow();
+    expect(() => svgTree('<svg><g></svg>')).toThrow();
+    expect(() => svgTree('<svg></svg><svg></svg>')).toThrow();
   });
 });
