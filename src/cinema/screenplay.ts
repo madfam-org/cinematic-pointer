@@ -77,7 +77,7 @@ export function pickMontage(capture: PageCapture, frameH: number, scale: number,
 }
 
 /** Weights closer than this are a tie. */
-const TIE = 0.05;
+export const TIE = 0.05;
 
 /**
  * The call to action the trailer closes on: the primary one of the page's last group. The last
@@ -86,7 +86,7 @@ const TIE = 0.05;
  * those wins (a page puts its main action first). If any member was captured without a weight the
  * weights are not comparable, and the leftmost wins outright.
  */
-export function pickAction(capture: PageCapture): Landmark | null {
+export function pickAction(capture: Pick<PageCapture, 'landmarks'>): Landmark | null {
   const actions = capture.landmarks.filter((m) => m.kind === 'cta');
   if (actions.length === 0) return null;
   const low = actions.reduce((a, b) => (centre(b).y > centre(a).y ? b : a));

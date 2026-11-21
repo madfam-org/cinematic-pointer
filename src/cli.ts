@@ -163,10 +163,10 @@ program
   )
   .option(
     '--persona <name>',
-    'Whose hand the pointer is in a cinematic take: guide, operator, analyst, explorer, maker, or a .json file',
+    'Whose hand the pointer is in a cinematic or stepped take: guide, operator, analyst, explorer, maker, or a .json file',
     'guide',
   )
-  .option('--no-pointer', 'Cinematic take with no pointer in it')
+  .option('--no-pointer', 'A cinematic or stepped take with no pointer in it')
   .option('--dry-run', 'List the selected trailers and render nothing', false)
   .action(produceCommand);
 

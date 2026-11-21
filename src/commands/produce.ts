@@ -180,14 +180,18 @@ async function produceOne(
     }
     result.renders.push(await proveRender(master, '16:9'));
   } else if (options.recorder === 'stepped') {
+    const persona =
+      options.pointer === false ? undefined : await loadPersona(options.persona ?? 'guide');
     const take = await recordStepped({
       journey,
       outputPath: master,
       workDir: runDir,
       browserType: options.browser as BrowserType,
+      persona,
     });
     result.recorder = 'stepped';
     result.frames = take.frames;
+    result.pointer = persona ? `${persona.id}: ${take.presses ?? 0} press(es)` : 'none';
     result.captions = 'none: a stepped take carries no captions yet';
     result.renders.push(await proveRender(master, '16:9'));
   } else {
@@ -257,7 +261,7 @@ export async function produce(options: ProduceOptions): Promise<ProduceResults> 
   }
   options = { ...options, recorder };
   // A bad persona should stop the run before anything is filmed.
-  if (recorder === 'cinematic' && options.pointer !== false) {
+  if ((recorder === 'cinematic' || recorder === 'stepped') && options.pointer !== false) {
     await loadPersona(options.persona ?? 'guide');
   }
   const trailers = selectTrailers(buildTrailers(catalog), options.filter);
